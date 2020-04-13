@@ -70,6 +70,19 @@ This specifies the expected count of members of an array or object.
 This is used when the JSON is just a simple value, e.g. a string, a number or a boolean.
 It specifies the expected value to be checked against that JSON value.
 
+## Important Notes
+
+### Floating Point
+
+All floating point numbers (numbers with a decimal point or using scientific "e" notation) in the JSON are converted to
+`BigDecimal`, so comparisons must also use that class.
+
+### Custom Deserialization
+
+The this library looks only at the input JSON, and does not take into account any custom deserializations that may be
+applied to the JSON when it is used in other situations.
+Custom name annotations, and even the conversion of dates from strings to `LocalDate` (for example) are not applied.
+
 ## Dependency Specification
 
 The latest version of the library is 0.2, and it may be obtained from the Maven Central repository.
@@ -93,4 +106,4 @@ The latest version of the library is 0.2, and it may be obtained from the Maven 
 
 Peter Wall
 
-2020-04-13
+2020-04-14
