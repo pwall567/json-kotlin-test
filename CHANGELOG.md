@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.1] - 2020-04-13
 ### Added
 - `JSONExpect`: initial version
 - `JSONExpectTest`: initial version
