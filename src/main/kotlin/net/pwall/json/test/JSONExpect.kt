@@ -30,201 +30,90 @@ import kotlin.test.fail
 import net.pwall.json.JSONConfig
 import net.pwall.json.parseJSON
 
-class JSONExpect(private val json: String, private val config: JSONConfig = JSONConfig.defaultConfig) {
+class JSONExpect(private val obj: Any?, private val pathInfo: String? = null) {
 
-    private val tests = mutableListOf<AbstractTest>()
+    private val prefix: String
+        get() = if (pathInfo != null) "$pathInfo: " else ""
+
+    private fun propertyPath(name: String) = if (pathInfo != null) "$pathInfo.$name" else name
+
+    private fun itemPath(index: Int) = if (pathInfo != null) "$pathInfo[$index]" else "[$index]"
 
     fun value(expected: Any?) {
-        tests.add(ValueTest(emptyList(), expected))
-    }
-
-    fun item(index: Int, expected: Any?) {
-        require(index >= 0) { "JSON array index must not be negative" }
-        tests.add(ValueTest(listOf(ArraySelector(index)), expected))
-    }
-
-    fun item(index: Int, configure: Nested.() -> Unit) {
-        require(index >= 0) { "JSON array index must not be negative" }
-        Nested(listOf(ArraySelector(index)), tests).configure()
+        checkValue(obj, expected)
     }
 
     fun property(name: String, expected: Any?) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        tests.add(ValueTest(listOf(ObjectSelector(name)), expected))
+        JSONExpect(getProperty(name), propertyPath(name)).value(expected)
     }
 
-    fun property(name: String, configure: Nested.() -> Unit) {
+    fun property(name: String, tests: JSONExpect.() -> Unit) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        Nested(listOf(ObjectSelector(name)), tests).configure()
+        JSONExpect(getProperty(name), propertyPath(name)).tests()
+    }
+
+    fun item(index: Int, expected: Any?) {
+        require(index >= 0) { "JSON array index must not be negative" }
+        JSONExpect(getItem(index), itemPath(index)).value(expected)
+    }
+
+    fun item(index: Int, tests: JSONExpect.() -> Unit) {
+        require(index >= 0) { "JSON array index must not be negative" }
+        JSONExpect(getItem(index), itemPath(index)).tests()
     }
 
     fun count(expected: Int) {
         require(expected >= 0) { "JSON array or object count must not be negative" }
-        tests.add(LengthTest(emptyList(), expected))
+        val length = when (obj) {
+            is List<*> -> obj.size
+            is Map<*, *> -> obj.size
+            else -> fail("${prefix}JSON count check not on array or object")
+        }
+        if (length != expected)
+            fail("${prefix}JSON length doesn't match - Expected $expected, was $length")
     }
 
     fun propertyAbsent(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        tests.add(AbsentTest(emptyList(), name))
+        if (obj !is Map<*, *>)
+            fail("${prefix}Not a JSON object")
+        if (obj.containsKey(name))
+            fail("${prefix}JSON property not absent - $name")
     }
 
-    fun check() {
-        val obj = try {
-            json.parseJSON<Any>(config)
-        }
-        catch (e: Exception) {
-            fail("Unable to parse JSON - ${e.message}")
-        }
-        tests.forEach {
-            it.performTest(obj)
-        }
+    private fun getProperty(name: String): Any? {
+        if (obj !is Map<*, *>)
+            fail("${propertyPath(name)}: Not a JSON object")
+        if (!obj.containsKey(name))
+            fail("${propertyPath(name)}: JSON property missing")
+        return obj[name]
     }
 
-    class Nested(private val selectors: List<Selector>, private val tests: MutableList<AbstractTest>) {
-
-        fun value(expected: Any?) {
-            tests.add(ValueTest(selectors, expected))
-        }
-
-        fun item(index: Int, expected: Any?) {
-            require(index >= 0) { "JSON array index must not be negative" }
-            tests.add(ValueTest(extendedSelectors(ArraySelector(index)), expected))
-        }
-
-        fun item(index: Int, configure: Nested.() -> Unit) {
-            require(index >= 0) { "JSON array index must not be negative" }
-            Nested(extendedSelectors(ArraySelector(index)), tests).configure()
-        }
-
-        fun property(name: String, expected: Any?) {
-            require(name.isNotEmpty()) { "JSON property name must not be empty" }
-            tests.add(ValueTest(extendedSelectors(ObjectSelector(name)), expected))
-        }
-
-        fun property(name: String, configure: Nested.() -> Unit) {
-            require(name.isNotEmpty()) { "JSON property name must not be empty" }
-            Nested(extendedSelectors(ObjectSelector(name)), tests).configure()
-        }
-
-        fun count(expected: Int) {
-            require(expected >= 0) { "JSON array or object count must not be negative" }
-            tests.add(LengthTest(selectors, expected))
-        }
-
-        fun propertyAbsent(name: String) {
-            tests.add(AbsentTest(selectors, name))
-        }
-
-        private fun extendedSelectors(newSelector: Selector): List<Selector> = mutableListOf<Selector>().apply {
-            addAll(selectors)
-            add(newSelector)
-        }
-
+    private fun getItem(index: Int): Any? {
+        if (obj !is List<*>)
+            fail("${itemPath(index)}: Not a JSON array")
+        if (index !in obj.indices)
+            fail("${itemPath(index)}: JSON array index out of bounds")
+        return obj[index]
     }
 
-    interface Selector {
-        fun select(obj: Any?, selectors: List<Selector>): Any?
-    }
-
-    class ArraySelector(private val index: Int) : Selector {
-
-        override fun select(obj: Any?, selectors: List<Selector>): Any? {
-            if (obj !is List<*>)
-                fail("${describeSelectors(selectors, this)}Not a JSON array")
-            if (index !in obj.indices)
-                fail("${describeSelectors(selectors, this)}JSON array index out of bounds")
-            return obj[index]
-        }
-
-        override fun toString(): String = "[$index]"
-
-    }
-
-    class ObjectSelector(private val key: String) : Selector {
-
-        override fun select(obj: Any?, selectors: List<Selector>): Any? {
-            if (obj !is Map<*, *>)
-                fail("${describeSelectors(selectors, this)}Not a JSON object")
-            if (!obj.containsKey(key))
-                fail("${describeSelectors(selectors, this)}JSON property missing")
-            return obj[key]
-        }
-
-        override fun toString(): String = ".$key"
-
-    }
-
-    abstract class AbstractTest(val selectors: List<Selector>) {
-
-        abstract fun performTest(obj: Any?)
-
-        fun select(obj: Any?): Any? {
-            var result = obj
-            selectors.forEach { result = it.select(result, selectors) }
-            return result
-        }
-
-    }
-
-    class ValueTest(selectors: List<Selector>, private val expected: Any?) : AbstractTest(selectors) {
-
-        override fun performTest(obj: Any?) {
-            val value = select(obj)
-            if (value != expected)
-                fail("${describeSelectors(selectors)}JSON value doesn't match - Expected $expected, was $value")
-        }
-
-    }
-
-    class LengthTest(selectors: List<Selector>, private val expected: Int) : AbstractTest(selectors) {
-
-        override fun performTest(obj: Any?) {
-            when (val selected = select(obj)) {
-                is List<*> -> compareLength(selected.size)
-                is Map<*, *> -> compareLength(selected.size)
-                else -> fail("${describeSelectors(selectors)}JSON count check not on array or object")
-            }
-        }
-
-        private fun compareLength(actual: Int) {
-            if (actual != expected)
-                fail("${describeSelectors(selectors)}JSON length doesn't match - Expected $expected, was $actual")
-        }
-
-    }
-
-    class AbsentTest(selectors: List<Selector>, private val name: String) : AbstractTest(selectors) {
-
-        override fun performTest(obj: Any?) {
-            val selected = select(obj)
-            if (selected !is Map<*, *>)
-                fail("${describeSelectors(selectors)}Not a JSON object")
-            if (selected.containsKey(name))
-                fail("${describeSelectors(selectors)}JSON property not absent - $name")
-        }
-
+    private fun checkValue(value: Any?, expected: Any?) {
+        if (value != expected)
+            fail("${prefix}JSON value doesn't match - Expected $expected, was $value")
     }
 
     companion object {
 
-        fun expectJSON(json: String, configure: JSONExpect.() -> Unit) {
-            val jsonExpect = JSONExpect(json)
-            jsonExpect.configure()
-            jsonExpect.check()
-        }
-
-        internal fun describeSelectors(selectors: List<Selector>, selector: Selector? = null): String =
-                StringBuilder().apply {
-            for (s in selectors) {
-                append(s)
-                if (s === selector)
-                    break
+        fun expectJSON(json: String, tests: JSONExpect.() -> Unit) {
+            val obj = try {
+                json.parseJSON<Any>()
             }
-            if (length > 0 && this[0] == '.')
-                deleteCharAt(0)
-            if (length > 0)
-                append(": ")
-        }.toString()
+            catch (e: Exception) {
+                fail("Unable to parse JSON - ${e.message}")
+            }
+            JSONExpect(obj).tests()
+        }
 
     }
 
