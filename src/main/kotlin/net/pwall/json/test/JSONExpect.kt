@@ -27,42 +27,256 @@ package net.pwall.json.test
 
 import kotlin.test.fail
 
-import net.pwall.json.JSONConfig
+import java.math.BigDecimal
+
 import net.pwall.json.parseJSON
 
-class JSONExpect(private val obj: Any?, private val pathInfo: String? = null) {
+/**
+ * Implementation class for `expectJSON()` function.
+ *
+ * @author  Peter Wall
+ */
+class JSONExpect private constructor(private val obj: Any?, private val pathInfo: String? = null) {
 
     private val prefix: String
         get() = if (pathInfo != null) "$pathInfo: " else ""
 
-    private fun propertyPath(name: String) = if (pathInfo != null) "$pathInfo.$name" else name
-
-    private fun itemPath(index: Int) = if (pathInfo != null) "$pathInfo[$index]" else "[$index]"
-
-    fun value(expected: Any?) {
-        checkValue(obj, expected)
+    /**
+     * Check the value as an [Int].
+     *
+     * @param   expected        the expected [Int] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun value(expected: Int) {
+        if (obj !is Int)
+            failOnType("integer")
+        if (obj != expected)
+            failOnValue(expected.toString(), obj.toString())
     }
 
-    fun property(name: String, expected: Any?) {
-        require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        JSONExpect(getProperty(name), propertyPath(name)).value(expected)
+    /**
+     * Check the value as a [Long].
+     *
+     * @param   expected        the expected [Long] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun value(expected: Long) {
+        if (obj !is Long)
+            failOnType("long integer")
+        if (obj != expected)
+            failOnValue(expected.toString(), obj.toString())
     }
 
+    /**
+     * Check the value as a [BigDecimal].
+     *
+     * @param   expected        the expected [BigDecimal] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun value(expected: BigDecimal) {
+        if (obj !is BigDecimal)
+            failOnType("decimal")
+        if (obj != expected)
+            failOnValue(expected.toString(), obj.toString())
+    }
+
+    /**
+     * Check the value as a [Boolean].
+     *
+     * @param   expected        the expected [Boolean] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun value(expected: Boolean) {
+        if (obj !is Boolean)
+            failOnType("boolean")
+        if (obj != expected)
+            failOnValue(expected.toString(), obj.toString())
+    }
+
+    /**
+     * Check the value as a [String] or `null`.
+     *
+     * @param   expected        the expected [String] value (or `null`)
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun value(expected: String?) {
+        when {
+            expected == null -> {
+                if (obj != null)
+                    failOnValue("null", formatValue(obj))
+            }
+            obj == null -> failOnValue("\"$expected\"", "null")
+            else -> {
+                if (obj !is String)
+                    failOnType("string")
+                if (obj != expected)
+                    failOnValue("\"$expected\"", "\"$obj\"")
+            }
+        }
+    }
+
+    /**
+     * Check a property as an [Int].
+     *
+     * @param   name            the property name
+     * @param   expected        the expected [Int] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun property(name: String, expected: Int) {
+        checkName(name).let {
+            JSONExpect(getProperty(it), propertyPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Check a property as a [Long].
+     *
+     * @param   name            the property name
+     * @param   expected        the expected [Long] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun property(name: String, expected: Long) {
+        checkName(name).let {
+            JSONExpect(getProperty(it), propertyPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Check a property as a [BigDecimal].
+     *
+     * @param   name            the property name
+     * @param   expected        the expected [BigDecimal] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun property(name: String, expected: BigDecimal) {
+        checkName(name).let {
+            JSONExpect(getProperty(it), propertyPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Check a property as a [Boolean].
+     *
+     * @param   name            the property name
+     * @param   expected        the expected [Boolean] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun property(name: String, expected: Boolean) {
+        checkName(name).let {
+            JSONExpect(getProperty(it), propertyPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Check a property as a [String] or `null`.
+     *
+     * @param   name            the property name
+     * @param   expected        the expected [String] value (or `null`)
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun property(name: String, expected: String?) {
+        checkName(name).let {
+            JSONExpect(getProperty(it), propertyPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Select a property for nested tests.
+     *
+     * @param   name            the property name
+     * @param   tests           the tests to be performed on the property
+     * @throws  AssertionError  if thrown by any of the tests
+     */
     fun property(name: String, tests: JSONExpect.() -> Unit) {
-        require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        JSONExpect(getProperty(name), propertyPath(name)).tests()
+        checkName(name).let {
+            JSONExpect(getProperty(it), propertyPath(it)).tests()
+        }
     }
 
-    fun item(index: Int, expected: Any?) {
-        require(index >= 0) { "JSON array index must not be negative" }
-        JSONExpect(getItem(index), itemPath(index)).value(expected)
+    /**
+     * Check an array item as an [Int].
+     *
+     * @param   index           the array index
+     * @param   expected        the expected [Int] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun item(index: Int, expected: Int) {
+        checkIndex(index).let {
+            JSONExpect(getItem(it), itemPath(it)).value(expected)
+        }
     }
 
+    /**
+     * Check an array item as a [Long].
+     *
+     * @param   index           the array index
+     * @param   expected        the expected [Long] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun item(index: Int, expected: Long) {
+        checkIndex(index).let {
+            JSONExpect(getItem(it), itemPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Check an array item as a [BigDecimal].
+     *
+     * @param   index           the array index
+     * @param   expected        the expected [BigDecimal] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun item(index: Int, expected: BigDecimal) {
+        checkIndex(index).let {
+            JSONExpect(getItem(it), itemPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Check an array item as a [Boolean].
+     *
+     * @param   index           the array index
+     * @param   expected        the expected [Boolean] value
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun item(index: Int, expected: Boolean) {
+        checkIndex(index).let {
+            JSONExpect(getItem(it), itemPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Check an array item as a [String] or `null`.
+     *
+     * @param   index           the array index
+     * @param   expected        the expected [String] value (or `null`)
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun item(index: Int, expected: String?) {
+        checkIndex(index).let {
+            JSONExpect(getItem(it), itemPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Select an array item for nested tests.
+     *
+     * @param   index           the array index
+     * @param   tests           the tests to be performed on the property
+     * @throws  AssertionError  if thrown by any of the tests
+     */
     fun item(index: Int, tests: JSONExpect.() -> Unit) {
-        require(index >= 0) { "JSON array index must not be negative" }
-        JSONExpect(getItem(index), itemPath(index)).tests()
+        checkIndex(index).let {
+            JSONExpect(getItem(it), itemPath(it)).tests()
+        }
     }
 
+    /**
+     * Check the count of array items or object properties.
+     *
+     * @param   expected        the expected count
+     * @throws  AssertionError  if the value is incorrect
+     */
     fun count(expected: Int) {
         require(expected >= 0) { "JSON array or object count must not be negative" }
         val length = when (obj) {
@@ -74,6 +288,12 @@ class JSONExpect(private val obj: Any?, private val pathInfo: String? = null) {
             fail("${prefix}JSON length doesn't match - Expected $expected, was $length")
     }
 
+    /**
+     * Check that a property is absent from an object.
+     *
+     * @param   name            the property name
+     * @throws  AssertionError  if the value is incorrect
+     */
     fun propertyAbsent(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
         if (obj !is Map<*, *>)
@@ -81,6 +301,30 @@ class JSONExpect(private val obj: Any?, private val pathInfo: String? = null) {
         if (obj.containsKey(name))
             fail("${prefix}JSON property not absent - $name")
     }
+
+    private fun failOnValue(expectedString: String, actualString: String): Nothing {
+        fail("${prefix}JSON value doesn't match - Expected $expectedString, was $actualString")
+    }
+
+    private fun failOnType(expected: String): Nothing {
+        val type = when (obj) {
+            null -> "null"
+            is Int -> "integer"
+            is Long -> "long integer"
+            is BigDecimal -> "decimal"
+            is String -> "string"
+            is Boolean -> "boolean"
+            is List<*> -> "array"
+            is Map<*, *> -> "object"
+            else -> "unknown"
+        }
+        fail("${prefix}JSON type doesn't match - Expected $expected, was $type")
+    }
+
+    private fun checkName(name: String): String =
+            if (name.isNotEmpty()) name else fail("JSON property name must not be empty")
+
+    private fun checkIndex(index: Int): Int = if (index >= 0) index else fail("JSON array index must not be negative")
 
     private fun getProperty(name: String): Any? {
         if (obj !is Map<*, *>)
@@ -98,13 +342,25 @@ class JSONExpect(private val obj: Any?, private val pathInfo: String? = null) {
         return obj[index]
     }
 
-    private fun checkValue(value: Any?, expected: Any?) {
-        if (value != expected)
-            fail("${prefix}JSON value doesn't match - Expected $expected, was $value")
+    private fun formatValue(value: Any?) = when (value) {
+        null -> "null"
+        is String -> "\"$value\""
+        else -> value.toString()
     }
+
+    private fun propertyPath(name: String) = if (pathInfo != null) "$pathInfo.$name" else name
+
+    private fun itemPath(index: Int) = if (pathInfo != null) "$pathInfo[$index]" else "[$index]"
 
     companion object {
 
+        /**
+         * Check that a JSON string matches the defined expectations.
+         *
+         * @param   json            the JSON string
+         * @param   tests           the tests to be performed on the JSON
+         * @throws  AssertionError  if any of the tests fail
+         */
         fun expectJSON(json: String, tests: JSONExpect.() -> Unit) {
             val obj = try {
                 json.parseJSON<Any>()

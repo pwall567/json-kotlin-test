@@ -29,6 +29,8 @@ import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.expect
 
+import java.math.BigDecimal
+
 import net.pwall.json.test.JSONExpect.Companion.expectJSON
 
 class JSONExpectTest {
@@ -60,10 +62,38 @@ class JSONExpectTest {
         expect("JSON value doesn't match - Expected 568, was 567") { exception.message }
     }
 
+    @Test fun `should test long value`() {
+        val json = "123456789123456789"
+        expectJSON(json) {
+            value(123456789123456789)
+        }
+    }
+
+    @Test fun `should test string value`() {
+        val json = "\"abc\""
+        expectJSON(json) {
+            value("abc")
+        }
+    }
+
     @Test fun `should test boolean value`() {
         val json = "true"
         expectJSON(json) {
             value(true)
+        }
+    }
+
+    @Test fun `should test null value`() {
+        val json = "null"
+        expectJSON(json) {
+            value(null)
+        }
+    }
+
+    @Test fun `should test floating point value`() {
+        val json = "0.01"
+        expectJSON(json) {
+            value(BigDecimal("0.01"))
         }
     }
 
@@ -74,7 +104,7 @@ class JSONExpectTest {
         }
     }
 
-    @Test fun `should fail on incorrect test of simple property`() {
+    @Test fun `should fail on incorrect test of simple int property`() {
         val json = """{"abc":1}"""
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -82,6 +112,27 @@ class JSONExpectTest {
             }
         }
         expect("abc: JSON value doesn't match - Expected 2, was 1") { exception.message }
+    }
+
+    @Test fun `should test simple long property`() {
+        val json = """{"abc":123456789123456789}"""
+        expectJSON(json) {
+            property("abc", 123456789123456789)
+        }
+    }
+
+    @Test fun `should test simple floating point property`() {
+        val json = """{"abc":0.099}"""
+        expectJSON(json) {
+            property("abc", BigDecimal("0.099"))
+        }
+    }
+
+    @Test fun `should test simple boolean property`() {
+        val json = """{"abc":true}"""
+        expectJSON(json) {
+            property("abc", true)
+        }
     }
 
     @Test fun `should test simple int property specified as separate value`() {
@@ -132,14 +183,14 @@ class JSONExpectTest {
         expect("JSON length doesn't match - Expected 3, was 2") { exception.message }
     }
 
-    @Test fun `should test simple int array item`() {
+    @Test fun `should test int array item`() {
         val json = """[12345]"""
         expectJSON(json) {
             item(0, 12345)
         }
     }
 
-    @Test fun `should fail on incorrect test of simple int array item`() {
+    @Test fun `should fail on incorrect test of int array item`() {
         val json = """[12345]"""
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -147,6 +198,41 @@ class JSONExpectTest {
             }
         }
         expect("[0]: JSON value doesn't match - Expected 12346, was 12345") { exception.message }
+    }
+
+    @Test fun `should test long array item`() {
+        val json = """[123456789123456789]"""
+        expectJSON(json) {
+            item(0, 123456789123456789)
+        }
+    }
+
+    @Test fun `should test floating point array item`() {
+        val json = """[123.45]"""
+        expectJSON(json) {
+            item(0, BigDecimal("123.45"))
+        }
+    }
+
+    @Test fun `should test boolean array item`() {
+        val json = """[true]"""
+        expectJSON(json) {
+            item(0, true)
+        }
+    }
+
+    @Test fun `should test string array item`() {
+        val json = """["Hello!"]"""
+        expectJSON(json) {
+            item(0, "Hello!")
+        }
+    }
+
+    @Test fun `should test null array item`() {
+        val json = """[null]"""
+        expectJSON(json) {
+            item(0, null)
+        }
     }
 
     @Test fun `should test multiple int array items`() {
@@ -412,6 +498,26 @@ class JSONExpectTest {
             }
         }
         expect("outer: JSON property not absent - field") { exception.message }
+    }
+
+    @Test fun `should fail when comparing object as value`() {
+        val json = """{"outer":{"field":99}}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("outer", """{"field":99}""")
+            }
+        }
+        expect("outer: JSON type doesn't match - Expected string, was object") { exception.message }
+    }
+
+    @Test fun `should quote strings in match error message`() {
+        val json = """["un","deux","trois"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(1, "un")
+            }
+        }
+        expect("""[1]: JSON value doesn't match - Expected "un", was "deux"""") { exception.message }
     }
 
 }

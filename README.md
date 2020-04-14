@@ -41,7 +41,7 @@ import net.pwall.json.test.JSONExpect.Companion.expectJSON
 With that in place, the rest is easy!
 In a test, the `expectJSON` function takes two parameters: the JSON in string form, and lambda which can contain a
 number of tests.
-If any of the tests fails, an `AssertionException` is thrown, with a detailed message describing the problem.
+If any of the tests fails, an `AssertionError` is thrown, with a detailed message describing the problem.
 
 ### `property`
 
