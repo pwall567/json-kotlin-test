@@ -79,7 +79,7 @@ All floating point numbers (numbers with a decimal point or using scientific "e"
 
 ### Custom Deserialization
 
-The this library looks only at the input JSON, and does not take into account any custom deserializations that may be
+This library looks only at the input JSON, and does not take into account any custom deserializations that may be
 applied to the JSON when it is used in other situations.
 Custom name annotations, and even the conversion of dates from strings to `LocalDate` (for example) are not applied.
 
