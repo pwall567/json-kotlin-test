@@ -2,12 +2,13 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.3] - 2020-04-16
 ### Changed
 - `JSONExpect`: improved error messages
 - `JSONExpect`: all tests now strongly-typed
 - `JSONExpect`: added ability to specify value as a collection
 - `JSONExpect`: added ability to specify value as an `IntRange`, `LongRange` or `ClosedRange`
+- `JSONExpect`: added `propertyAbsentOrNull`
 
 ## [0.2] - 2020-04-13
 ### Changed

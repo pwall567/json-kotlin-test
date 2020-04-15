@@ -469,6 +469,20 @@ class JSONExpectTest {
         }
     }
 
+    @Test fun `should test for property absent or null 1`() {
+        val json = """{"abc":1,"def":-8}"""
+        expectJSON(json) {
+            propertyAbsentOrNull("ghi")
+        }
+    }
+
+    @Test fun `should test for property absent or null 2`() {
+        val json = """{"abc":1,"def":-8,"ghi":null}"""
+        expectJSON(json) {
+            propertyAbsentOrNull("ghi")
+        }
+    }
+
     @Test fun `should fail on incorrect test for property absent`() {
         val json = """{"abc":1,"def":-8}"""
         val exception = assertFailsWith<AssertionError> {
@@ -479,11 +493,30 @@ class JSONExpectTest {
         expect("JSON property not absent - def") { exception.message }
     }
 
+    @Test fun `should fail on incorrect test for property absent or null`() {
+        val json = """{"abc":1,"def":-8}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                propertyAbsentOrNull("def")
+            }
+        }
+        expect("JSON property not absent or null - def") { exception.message }
+    }
+
     @Test fun `should test for nested property absent`() {
         val json = """{"outer":{"field":99}}"""
         expectJSON(json) {
             property("outer") {
                 propertyAbsent("missing")
+            }
+        }
+    }
+
+    @Test fun `should test for nested property absent or null`() {
+        val json = """{"outer":{"field":99}}"""
+        expectJSON(json) {
+            property("outer") {
+                propertyAbsentOrNull("missing")
             }
         }
     }
@@ -498,6 +531,18 @@ class JSONExpectTest {
             }
         }
         expect("outer: JSON property not absent - field") { exception.message }
+    }
+
+    @Test fun `should fail on incorrect test for nested property absent or null`() {
+        val json = """{"outer":{"field":99}}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("outer") {
+                    propertyAbsentOrNull("field")
+                }
+            }
+        }
+        expect("outer: JSON property not absent or null - field") { exception.message }
     }
 
     @Test fun `should fail when comparing object as value`() {

@@ -576,6 +576,20 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
             fail("${prefix}JSON property not absent - $name")
     }
 
+    /**
+     * Check that a property is absent from an object, or if present, is `null`.
+     *
+     * @param   name            the property name
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun propertyAbsentOrNull(name: String) {
+        require(name.isNotEmpty()) { "JSON property name must not be empty" }
+        if (obj !is Map<*, *>)
+            fail("${prefix}Not a JSON object")
+        if (obj[name] != null)
+            fail("${prefix}JSON property not absent or null - $name")
+    }
+
     private fun failOnValue(expected: Any, actual: Any): Nothing {
         fail("${prefix}JSON value doesn't match - Expected $expected, was $actual")
     }

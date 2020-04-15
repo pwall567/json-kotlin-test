@@ -61,6 +61,12 @@ This is used to confirm that no property with the specified name is present in t
 It can often be simpler to specify the count (see below) of expected properties rather than enumerating the properties
 expected to be missing.
 
+### `propertyAbsentOrNull`
+
+In some cases, a `null` value in an object may be serialized as a property with the keyword value `"null"`, and in other
+cases the property may be omitted.
+Both forms are equivalent, and the `propertyAbsentOrNull` function tests for either case.
+
 ### `count`
 
 This specifies the expected count of members of an array or object.
