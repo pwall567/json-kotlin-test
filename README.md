@@ -88,27 +88,51 @@ Custom name annotations, and even the conversion of dates from strings to `Local
 Checking a value for `null`, e.g. `property("note", null)` will check that the named property **is present** in the JSON
 string and has the value `null`.
 
+### Check for Member of Collection
+
+Starting with version 0.3 of the library, you can check a value as being a member of a `Collection`.
+For example:
+```kotlin
+    property("quality", setOf("good", "bad"))
+```
+This test will succeed if the value of the property is one of the members of the set.
+
+The `Collection` must be of the appropriate type for the value being checked, and each of the functions `value`,
+`property` and `item` has an overloaded version that takes a `Collection`.
+
+### Check for Value in Range
+
+Again starting with version 0.3 of the library, you can check a value as being included in a range (`IntRange`,
+`LongRange` or `ClosedRange`).
+For example:
+```kotlin
+    property("number", 1000..9999)
+```
+
+As with `Collection`, the range must be of the appropriate type, and each of the functions `value`, `property` and
+`item` has an overloaded version that takes a range.
+
 ## Dependency Specification
 
-The latest version of the library is 0.2, and it may be obtained from the Maven Central repository.
+The latest version of the library is 0.3, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-test</artifactId>
-      <version>0.2</version>
+      <version>0.3</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin-test:0.2'
+    implementation 'net.pwall.json:json-kotlin-test:0.3'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin-test:0.2")
+    implementation("net.pwall.json:json-kotlin-test:0.3")
 ```
 
 Peter Wall
 
-2020-04-15
+2020-04-16
