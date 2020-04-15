@@ -11,7 +11,7 @@ It uses a Kotlin DSL to describe the expected JSON values, and produces detailed
 
 In a test class:
 ```kotlin
-    @Test fun `should produce correct JSON`() {
+    @Test fun `should produce correct JSON name data`() {
         val json = functionUnderTest()
         // json is (for example):
         // {"data":[{"id":1234,"surname":"Walker","givenNames":["Richard"]}]}
@@ -41,7 +41,7 @@ import net.pwall.json.test.JSONExpect.Companion.expectJSON
 With that in place, the rest is easy!
 In a test, the `expectJSON` function takes two parameters: the JSON in string form, and lambda which can contain a
 number of tests.
-If any of the tests fails, an `AssertionException` is thrown, with a detailed message describing the problem.
+If any of the tests fails, an `AssertionError` is thrown, with a detailed message describing the problem.
 
 ### `property`
 
@@ -61,6 +61,12 @@ This is used to confirm that no property with the specified name is present in t
 It can often be simpler to specify the count (see below) of expected properties rather than enumerating the properties
 expected to be missing.
 
+### `propertyAbsentOrNull`
+
+In some cases, a `null` value in an object may be serialized as a property with the keyword value `"null"`, and in other
+cases the property may be omitted.
+Both forms are equivalent, and the `propertyAbsentOrNull` function tests for either case.
+
 ### `count`
 
 This specifies the expected count of members of an array or object.
@@ -74,8 +80,8 @@ It specifies the expected value to be checked against that JSON value.
 
 ### Floating Point
 
-All floating point numbers (numbers with a decimal point or using scientific "e" notation) in the JSON are converted to
-`BigDecimal`, so comparisons must also use that class.
+All floating point numbers in the JSON (numbers with a decimal point or using scientific &ldquo;e&rdquo; notation) are
+converted to `BigDecimal`, so comparisons must also use that class, e.g. `property("price":, BigDecimal("9.99"))`.
 
 ### Custom Deserialization
 
@@ -83,27 +89,56 @@ This library looks only at the input JSON, and does not take into account any cu
 applied to the JSON when it is used in other situations.
 Custom name annotations, and even the conversion of dates from strings to `LocalDate` (for example) are not applied.
 
+### Check for `null`
+
+Checking a value for `null`, e.g. `property("note", null)` will check that the named property **is present** in the JSON
+string and has the value `null`.
+
+### Check for Member of Collection
+
+Starting with version 0.3 of the library, you can check a value as being a member of a `Collection`.
+For example:
+```kotlin
+    property("quality", setOf("good", "bad"))
+```
+This test will succeed if the value of the property is one of the members of the set.
+
+The `Collection` must be of the appropriate type for the value being checked, and each of the functions `value`,
+`property` and `item` has an overloaded version that takes a `Collection`.
+
+### Check for Value in Range
+
+Again starting with version 0.3 of the library, you can check a value as being included in a range (`IntRange`,
+`LongRange` or `ClosedRange`).
+For example:
+```kotlin
+    property("number", 1000..9999)
+```
+
+As with `Collection`, the range must be of the appropriate type, and each of the functions `value`, `property` and
+`item` has an overloaded version that takes a range.
+
 ## Dependency Specification
 
-The latest version of the library is 0.2, and it may be obtained from the Maven Central repository.
+The latest version of the library is 0.3, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-test</artifactId>
-      <version>0.2</version>
+      <version>0.3</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin-test:0.2'
+    implementation 'net.pwall.json:json-kotlin-test:0.3'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin-test:0.2")
+    implementation("net.pwall.json:json-kotlin-test:0.3")
 ```
 
 Peter Wall
 
-2020-04-14
+2020-04-16
