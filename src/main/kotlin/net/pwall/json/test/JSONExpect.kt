@@ -38,9 +38,6 @@ import net.pwall.json.parseJSON
  */
 class JSONExpect private constructor(private val obj: Any?, private val pathInfo: String? = null) {
 
-    private val prefix: String
-        get() = if (pathInfo != null) "$pathInfo: " else ""
-
     /**
      * Check the value as an [Int].
      *
@@ -100,12 +97,11 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: String?) {
-        when {
-            expected == null -> {
+        when (expected) {
+            null -> {
                 if (obj != null)
-                    failOnValue("null", formatValue(obj))
+                    failOnType("null")
             }
-            obj == null -> failOnValue("\"$expected\"", "null")
             else -> {
                 if (obj !is String)
                     failOnType("string")
@@ -342,15 +338,12 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
         return obj[index]
     }
 
-    private fun formatValue(value: Any?) = when (value) {
-        null -> "null"
-        is String -> "\"$value\""
-        else -> value.toString()
-    }
-
     private fun propertyPath(name: String) = if (pathInfo != null) "$pathInfo.$name" else name
 
     private fun itemPath(index: Int) = if (pathInfo != null) "$pathInfo[$index]" else "[$index]"
+
+    private val prefix: String
+        get() = if (pathInfo != null) "$pathInfo: " else ""
 
     companion object {
 

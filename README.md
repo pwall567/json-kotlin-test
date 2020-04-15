@@ -11,7 +11,7 @@ It uses a Kotlin DSL to describe the expected JSON values, and produces detailed
 
 In a test class:
 ```kotlin
-    @Test fun `should produce correct JSON`() {
+    @Test fun `should produce correct JSON name data`() {
         val json = functionUnderTest()
         // json is (for example):
         // {"data":[{"id":1234,"surname":"Walker","givenNames":["Richard"]}]}
@@ -74,14 +74,19 @@ It specifies the expected value to be checked against that JSON value.
 
 ### Floating Point
 
-All floating point numbers (numbers with a decimal point or using scientific "e" notation) in the JSON are converted to
-`BigDecimal`, so comparisons must also use that class.
+All floating point numbers in the JSON (numbers with a decimal point or using scientific &ldquo;e&rdquo; notation) are
+converted to `BigDecimal`, so comparisons must also use that class, e.g. `property("price":, BigDecimal("9.99"))`.
 
 ### Custom Deserialization
 
 This library looks only at the input JSON, and does not take into account any custom deserializations that may be
 applied to the JSON when it is used in other situations.
 Custom name annotations, and even the conversion of dates from strings to `LocalDate` (for example) are not applied.
+
+### Check for `null`
+
+Checking a value for `null`, e.g. `property("note", null)` will check that the named property **is present** in the JSON
+string and has the value `null`.
 
 ## Dependency Specification
 
@@ -106,4 +111,4 @@ The latest version of the library is 0.2, and it may be obtained from the Maven 
 
 Peter Wall
 
-2020-04-14
+2020-04-15

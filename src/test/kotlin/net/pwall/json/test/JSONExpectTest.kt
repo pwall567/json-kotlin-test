@@ -520,4 +520,94 @@ class JSONExpectTest {
         expect("""[1]: JSON value doesn't match - Expected "un", was "deux"""") { exception.message }
     }
 
+    @Test fun `should fail when comparing null to object`() {
+        val json = """{"outer":{"field":99}}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("outer", null)
+            }
+        }
+        expect("outer: JSON type doesn't match - Expected null, was object") { exception.message }
+    }
+
+    @Test fun `should fail when comparing null to array`() {
+        val json = """{"outer":[1,2,3]}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("outer", null)
+            }
+        }
+        expect("outer: JSON type doesn't match - Expected null, was array") { exception.message }
+    }
+
+    @Test fun `should fail when comparing null to string`() {
+        val json = """{"abc":"Hello"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", null)
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected null, was string") { exception.message }
+    }
+
+    @Test fun `should fail when comparing null to integer`() {
+        val json = """{"abc":123}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", null)
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected null, was integer") { exception.message }
+    }
+
+    @Test fun `should fail when comparing null to long`() {
+        val json = """{"abc":123456789123456789}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", null)
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected null, was long integer") { exception.message }
+    }
+
+    @Test fun `should fail when comparing string to null`() {
+        val json = """{"abc":null}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", "Hello")
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected string, was null") { exception.message }
+    }
+
+    @Test fun `should fail when comparing integer to null`() {
+        val json = """{"abc":null}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", 123)
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected integer, was null") { exception.message }
+    }
+
+    @Test fun `should fail when comparing integer to string`() {
+        val json = """{"abc":"Hello"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", 123)
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected integer, was string") { exception.message }
+    }
+
+    @Test fun `should fail when comparing string to integer`() {
+        val json = """{"abc":123}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", "Hello")
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected string, was integer") { exception.message }
+    }
+
 }
