@@ -1165,13 +1165,13 @@ class JSONExpectTest {
     }
 
     @Test fun `should fail on incorrect test of string value as UUID`() {
-        val json = "\"Not a UUID\""
+        val json = "\"not a UUID\""
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
                 value(uuid)
             }
         }
-        expect("JSON string is not a UUID") { exception.message }
+        expect("JSON string is not a UUID - \"not a UUID\"") { exception.message }
     }
 
     @Test fun `should fail on test of non-string value as UUID`() {
@@ -1198,7 +1198,7 @@ class JSONExpectTest {
                 property("abc", uuid)
             }
         }
-        expect("abc: JSON string is not a UUID") { exception.message }
+        expect("abc: JSON string is not a UUID - \"not a UUID\"") { exception.message }
     }
 
     @Test fun `should test string array item as UUID`() {
@@ -1215,7 +1215,7 @@ class JSONExpectTest {
                 item(0, uuid)
             }
         }
-        expect("[0]: JSON string is not a UUID") { exception.message }
+        expect("[0]: JSON string is not a UUID - \"not a UUID\"") { exception.message }
     }
 
     @Test fun `should test string value length`() {
@@ -1330,6 +1330,121 @@ class JSONExpectTest {
             }
         }
         expect("abc: Custom error message abc = 123") { exception.message }
+    }
+
+    @Test fun `should correctly access integer node`() {
+        val json = """{"abc":123}"""
+        expectJSON(json) {
+            property("abc") {
+                if (nodeAsInt != 123)
+                    error("Should not happen")
+            }
+        }
+    }
+
+    @Test fun `should fail on incorrect access to integer node`() {
+        val json = """{"abc":"xyz"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc") {
+                    if (nodeAsInt != 123)
+                        error("Should not happen")
+                }
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected integer, was string") { exception.message }
+    }
+
+    @Test fun `should correctly access long integer node`() {
+        val json = """{"abc":123456789123456789}"""
+        expectJSON(json) {
+            property("abc") {
+                if (nodeAsLong != 123456789123456789)
+                    error("Should not happen")
+            }
+        }
+    }
+
+    @Test fun `should fail on incorrect access to long integer node`() {
+        val json = """{"abc":"xyz"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc") {
+                    if (nodeAsLong != 123456789123456789)
+                        error("Should not happen")
+                }
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected long integer, was string") { exception.message }
+    }
+
+    @Test fun `should correctly access decimal node`() {
+        val json = """{"abc":1.99}"""
+        expectJSON(json) {
+            property("abc") {
+                if (nodeAsDecimal != BigDecimal("1.99"))
+                    error("Should not happen")
+            }
+        }
+    }
+
+    @Test fun `should fail on incorrect access to decimal node`() {
+        val json = """{"abc":"xyz"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc") {
+                    if (nodeAsDecimal != BigDecimal("1.99"))
+                        error("Should not happen")
+                }
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected decimal, was string") { exception.message }
+    }
+
+    @Test fun `should correctly access boolean node`() {
+        val json = """{"abc":true}"""
+        expectJSON(json) {
+            property("abc") {
+                if (!nodeAsBoolean)
+                    error("Should not happen")
+            }
+        }
+    }
+
+    @Test fun `should fail on incorrect access to boolean node`() {
+        val json = """{"abc":"xyz"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc") {
+                    if (!nodeAsBoolean)
+                        error("Should not happen")
+                }
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected boolean, was string") { exception.message }
+    }
+
+    @Test fun `should correctly access string node`() {
+        val json = """{"abc":"xyz"}"""
+        expectJSON(json) {
+            property("abc") {
+                if (nodeAsString != "xyz")
+                    error("Should not happen")
+            }
+        }
+    }
+
+    @Test fun `should fail on incorrect access to string node`() {
+        val json = """{"abc":123}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc") {
+                    if (nodeAsString != "xyz")
+                        error("Should not happen")
+                }
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected string, was integer") { exception.message }
     }
 
 }

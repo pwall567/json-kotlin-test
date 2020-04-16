@@ -46,6 +46,26 @@ class JSONExpect private constructor(
         /** The context node path. */
         val path: String? = null) {
 
+    /** The context node as [Int]. */
+    val nodeAsInt: Int
+        get() = if (node is Int) node else errorOnType("integer")
+
+    /** The context node as [Long]. */
+    val nodeAsLong: Long
+        get() = if (node is Long) node else errorOnType("long integer")
+
+    /** The context node as [BigDecimal]. */
+    val nodeAsDecimal: BigDecimal
+        get() = if (node is BigDecimal) node else errorOnType("decimal")
+
+    /** The context node as [Boolean]. */
+    val nodeAsBoolean: Boolean
+        get() = if (node is Boolean) node else errorOnType("boolean")
+
+    /** The context node as [String]. */
+    val nodeAsString: String
+        get() = if (node is String) node else errorOnType("string")
+
     /**
      * Check the value as an [Int].
      *
@@ -53,9 +73,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: Int) {
-        if (node !is Int)
-            errorOnType("integer")
-        if (node != expected)
+        if (nodeAsInt != expected)
             errorOnValue(expected, node)
     }
 
@@ -66,9 +84,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: Long) {
-        if (node !is Long)
-            errorOnType("long integer")
-        if (node != expected)
+        if (nodeAsLong != expected)
             errorOnValue(expected, node)
     }
 
@@ -79,9 +95,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: BigDecimal) {
-        if (node !is BigDecimal)
-            errorOnType("decimal")
-        if (node != expected)
+        if (nodeAsDecimal != expected)
             errorOnValue(expected, node)
     }
 
@@ -92,9 +106,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: Boolean) {
-        if (node !is Boolean)
-            errorOnType("boolean")
-        if (node != expected)
+        if (nodeAsBoolean != expected)
             errorOnValue(expected, node)
     }
 
@@ -111,9 +123,7 @@ class JSONExpect private constructor(
                     errorOnType("null")
             }
             else -> {
-                if (node !is String)
-                    errorOnType("string")
-                if (node != expected)
+                if (nodeAsString != expected)
                     errorOnValue("\"$expected\"", "\"$node\"")
             }
         }
@@ -126,9 +136,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is not within the [IntRange]
      */
     fun value(expected: IntRange) {
-        if (node !is Int)
-            errorOnType("integer")
-        if (node !in expected)
+        if (nodeAsInt !in expected)
             errorOnValue(expected, node)
     }
 
@@ -139,9 +147,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is not within the [LongRange]
      */
     fun value(expected: LongRange) {
-        if (node !is Long)
-            errorOnType("long integer")
-        if (node !in expected)
+        if (nodeAsLong !in expected)
             errorOnValue(expected, node)
     }
 
@@ -624,13 +630,11 @@ class JSONExpect private constructor(
 
     /** Check that a string value is a valid UUID. */
     val uuid: JSONExpect.() -> Unit = {
-        if (node !is String)
-            errorOnType("string")
         try {
-            UUID.fromString(node)
+            UUID.fromString(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a UUID")
+            error("JSON string is not a UUID - \"$node\"")
         }
     }
 
@@ -641,10 +645,10 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the length is incorrect
      */
     fun length(expected: Int): JSONExpect.() -> Unit = {
-        if (node !is String)
-            errorOnType("string")
-        if (node.length != expected)
-            error("JSON string length doesn't match - Expected $expected, was ${node.length}")
+        nodeAsString.let {
+            if (it.length != expected)
+                error("JSON string length doesn't match - Expected $expected, was ${it.length}")
+        }
     }
 
     /**
@@ -654,10 +658,10 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the length is incorrect
      */
     fun length(expected: IntRange): JSONExpect.() -> Unit = {
-        if (node !is String)
-            errorOnType("string")
-        if (node.length !in expected)
-            error("JSON string length doesn't match - Expected $expected, was ${node.length}")
+        nodeAsString.let {
+            if (it.length !in expected)
+                error("JSON string length doesn't match - Expected $expected, was ${it.length}")
+        }
     }
 
     /**
@@ -670,7 +674,7 @@ class JSONExpect private constructor(
         fail("$context$message")
     }
 
-    private fun errorOnValue(expected: Any, actual: Any): Nothing {
+    private fun errorOnValue(expected: Any?, actual: Any?): Nothing {
         error("JSON value doesn't match - Expected $expected, was $actual")
     }
 
