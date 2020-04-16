@@ -30,6 +30,16 @@ import kotlin.reflect.KType
 import kotlin.test.fail
 
 import java.math.BigDecimal
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.OffsetTime
+import java.time.Period
+import java.time.Year
+import java.time.YearMonth
+import java.time.ZonedDateTime
+import java.util.UUID
 
 import net.pwall.json.JSONTypeRef
 import net.pwall.json.parseJSON
@@ -39,7 +49,31 @@ import net.pwall.json.parseJSON
  *
  * @author  Peter Wall
  */
-class JSONExpect private constructor(private val obj: Any?, private val pathInfo: String? = null) {
+class JSONExpect private constructor(
+        /** The context node. */
+        val node: Any?,
+        /** The context node path. */
+        val path: String? = null) {
+
+    /** The context node as [Int]. */
+    val nodeAsInt: Int
+        get() = if (node is Int) node else errorOnType("integer")
+
+    /** The context node as [Long]. */
+    val nodeAsLong: Long
+        get() = if (node is Long) node else errorOnType("long integer")
+
+    /** The context node as [BigDecimal]. */
+    val nodeAsDecimal: BigDecimal
+        get() = if (node is BigDecimal) node else errorOnType("decimal")
+
+    /** The context node as [Boolean]. */
+    val nodeAsBoolean: Boolean
+        get() = if (node is Boolean) node else errorOnType("boolean")
+
+    /** The context node as [String]. */
+    val nodeAsString: String
+        get() = if (node is String) node else errorOnType("string")
 
     /**
      * Check the value as an [Int].
@@ -48,10 +82,8 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: Int) {
-        if (obj !is Int)
-            failOnType("integer")
-        if (obj != expected)
-            failOnValue(expected, obj)
+        if (nodeAsInt != expected)
+            errorOnValue(expected, node)
     }
 
     /**
@@ -61,10 +93,8 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: Long) {
-        if (obj !is Long)
-            failOnType("long integer")
-        if (obj != expected)
-            failOnValue(expected, obj)
+        if (nodeAsLong != expected)
+            errorOnValue(expected, node)
     }
 
     /**
@@ -74,10 +104,8 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: BigDecimal) {
-        if (obj !is BigDecimal)
-            failOnType("decimal")
-        if (obj != expected)
-            failOnValue(expected, obj)
+        if (nodeAsDecimal != expected)
+            errorOnValue(expected, node)
     }
 
     /**
@@ -87,10 +115,8 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: Boolean) {
-        if (obj !is Boolean)
-            failOnType("boolean")
-        if (obj != expected)
-            failOnValue(expected, obj)
+        if (nodeAsBoolean != expected)
+            errorOnValue(expected, node)
     }
 
     /**
@@ -102,16 +128,25 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
     fun value(expected: String?) {
         when (expected) {
             null -> {
-                if (obj != null)
-                    failOnType("null")
+                if (node != null)
+                    errorOnType("null")
             }
             else -> {
-                if (obj !is String)
-                    failOnType("string")
-                if (obj != expected)
-                    failOnValue("\"$expected\"", "\"$obj\"")
+                if (nodeAsString != expected)
+                    errorOnValue("\"$expected\"", "\"$node\"")
             }
         }
+    }
+
+    /**
+     * Check the value as a [String] against a [Regex].
+     *
+     * @param   expected        the [Regex]
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun value(expected: Regex) {
+        if (!(expected matches nodeAsString))
+            error("JSON string doesn't match regex - Expected $expected, was \"$node\"")
     }
 
     /**
@@ -121,10 +156,8 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      * @throws  AssertionError  if the value is not within the [IntRange]
      */
     fun value(expected: IntRange) {
-        if (obj !is Int)
-            failOnType("integer")
-        if (obj !in expected)
-            failInRange(obj)
+        if (nodeAsInt !in expected)
+            errorOnValue(expected, node)
     }
 
     /**
@@ -134,10 +167,8 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      * @throws  AssertionError  if the value is not within the [LongRange]
      */
     fun value(expected: LongRange) {
-        if (obj !is Long)
-            failOnType("long integer")
-        if (obj !in expected)
-            failInRange(obj)
+        if (nodeAsLong !in expected)
+            errorOnValue(expected, node)
     }
 
     /**
@@ -149,33 +180,33 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      */
     @Suppress("UNCHECKED_CAST")
     fun <T: Comparable<T>> valueInRange(expected: ClosedRange<T>, type: KType) {
-        val itemClass = type.classifier as? KClass<*> ?: fail("${prefix}Can't determine type of ClosedRange")
+        val itemClass = type.classifier as? KClass<*> ?: error("Can't determine type of ClosedRange")
         when (itemClass) {
             Int::class -> {
-                if (obj !is Int)
-                    failOnType("integer")
-                if (obj as T !in expected)
-                    failInRange(obj)
+                if (node !is Int)
+                    errorOnType("integer")
+                if (node as T !in expected)
+                    errorInRange(node)
             }
             Long::class -> {
-                if (obj !is Long)
-                    failOnType("long integer")
-                if (obj as T !in expected)
-                    failInRange(obj)
+                if (node !is Long)
+                    errorOnType("long integer")
+                if (node as T !in expected)
+                    errorInRange(node)
             }
             BigDecimal::class -> {
-                if (obj !is BigDecimal)
-                    failOnType("decimal")
-                if (obj as T !in expected)
-                    failInRange(obj)
+                if (node !is BigDecimal)
+                    errorOnType("decimal")
+                if (node as T !in expected)
+                    errorInRange(node)
             }
             String::class -> {
-                if (obj !is String)
-                    failOnType("string")
-                if (obj as T !in expected)
-                    failInRange("\"$obj\"")
+                if (node !is String)
+                    errorOnType("string")
+                if (node as T !in expected)
+                    errorInRange("\"$node\"")
             }
-            else -> fail("${prefix}Can't perform test using range of $type")
+            else -> error("Can't perform test using range of $type")
         }
     }
 
@@ -197,33 +228,33 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
     fun <T> valueInCollection(expected: Collection<T>, type: KType) {
-        val itemClass = type.classifier as? KClass<*> ?: fail("${prefix}Can't determine type of Collection")
+        val itemClass = type.classifier as? KClass<*> ?: error("Can't determine type of Collection")
         when (itemClass) {
             Int::class -> {
-                if (obj != null && obj !is Int)
-                    failOnType("integer")
-                if (!expected.contains(obj))
-                    failInCollection(obj)
+                if (node != null && node !is Int)
+                    errorOnType("integer")
+                if (!expected.contains(node))
+                    errorInCollection(node)
             }
             Long::class -> {
-                if (obj != null && obj !is Long)
-                    failOnType("long integer")
-                if (!expected.contains(obj))
-                    failInCollection(obj)
+                if (node != null && node !is Long)
+                    errorOnType("long integer")
+                if (!expected.contains(node))
+                    errorInCollection(node)
             }
             BigDecimal::class -> {
-                if (obj != null && obj !is BigDecimal)
-                    failOnType("decimal")
-                if (!expected.contains(obj))
-                    failInCollection(obj)
+                if (node != null && node !is BigDecimal)
+                    errorOnType("decimal")
+                if (!expected.contains(node))
+                    errorInCollection(node)
             }
             String::class -> {
-                if (obj != null && obj !is String)
-                    failOnType("string")
-                if (!expected.contains(obj))
-                    failInCollection(if (obj == null) "null" else "\"$obj\"")
+                if (node != null && node !is String)
+                    errorOnType("string")
+                if (!expected.contains(node))
+                    errorInCollection(if (node == null) "null" else "\"$node\"")
             }
-            else -> fail("${prefix}Can't perform test using collection of $type")
+            else -> error("Can't perform test using collection of $type")
         }
     }
 
@@ -235,6 +266,16 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      */
     inline fun <reified T: Any> value(expected: Collection<T?>) {
         valueInCollection(expected, JSONTypeRef.create<T>(nullable = true).refType)
+    }
+
+    /**
+     * Apply pre-configured tests to the value.
+     *
+     * @param   tests           the tests
+     * @throws  AssertionError  if thrown by any of the tests
+     */
+    fun value(tests: JSONExpect.() -> Unit) {
+        tests.invoke(this)
     }
 
     /**
@@ -297,6 +338,19 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      * @throws  AssertionError  if the value is incorrect
      */
     fun property(name: String, expected: String?) {
+        checkName(name).let {
+            JSONExpect(getProperty(it), propertyPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Check a property as a [String] against a [Regex].
+     *
+     * @param   name            the property name
+     * @param   expected        the [Regex]
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun property(name: String, expected: Regex) {
         checkName(name).let {
             JSONExpect(getProperty(it), propertyPath(it)).value(expected)
         }
@@ -457,6 +511,19 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
     }
 
     /**
+     * Check a property as a [String] against a [Regex].
+     *
+     * @param   index           the array index
+     * @param   expected        the [Regex]
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun item(index: Int, expected: Regex) {
+        checkIndex(index).let {
+            JSONExpect(getItem(it), itemPath(it)).value(expected)
+        }
+    }
+
+    /**
      * Check an array item as a member of an [IntRange].
      *
      * @param   index           the array index
@@ -553,13 +620,30 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      */
     fun count(expected: Int) {
         require(expected >= 0) { "JSON array or object count must not be negative" }
-        val length = when (obj) {
-            is List<*> -> obj.size
-            is Map<*, *> -> obj.size
-            else -> fail("${prefix}JSON count check not on array or object")
+        val length = when (node) {
+            is List<*> -> node.size
+            is Map<*, *> -> node.size
+            else -> error("JSON count check not on array or object")
         }
         if (length != expected)
-            fail("${prefix}JSON length doesn't match - Expected $expected, was $length")
+            error("JSON count doesn't match - Expected $expected, was $length")
+    }
+
+    /**
+     * Check the count of array items or object properties as a range.
+     *
+     * @param   expected        the expected range
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun count(expected: IntRange) {
+        require(expected.first >= 0) { "JSON array or object count must not be negative" }
+        val length = when (node) {
+            is List<*> -> node.size
+            is Map<*, *> -> node.size
+            else -> error("JSON count check not on array or object")
+        }
+        if (length !in expected)
+            error("JSON count doesn't match - Expected $expected, was $length")
     }
 
     /**
@@ -570,10 +654,10 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      */
     fun propertyAbsent(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        if (obj !is Map<*, *>)
-            fail("${prefix}Not a JSON object")
-        if (obj.containsKey(name))
-            fail("${prefix}JSON property not absent - $name")
+        if (node !is Map<*, *>)
+            error("Not a JSON object")
+        if (node.containsKey(name))
+            error("JSON property not absent - $name")
     }
 
     /**
@@ -584,18 +668,154 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      */
     fun propertyAbsentOrNull(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        if (obj !is Map<*, *>)
-            fail("${prefix}Not a JSON object")
-        if (obj[name] != null)
-            fail("${prefix}JSON property not absent or null - $name")
+        if (node !is Map<*, *>)
+            error("Not a JSON object")
+        if (node[name] != null)
+            error("JSON property not absent or null - $name")
     }
 
-    private fun failOnValue(expected: Any, actual: Any): Nothing {
-        fail("${prefix}JSON value doesn't match - Expected $expected, was $actual")
+    /** Check that a string value is a valid [UUID]. */
+    val uuid: JSONExpect.() -> Unit = {
+        try {
+            UUID.fromString(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a UUID - \"$node\"")
+        }
     }
 
-    private fun failOnType(expected: String): Nothing {
-        val type = when (obj) {
+    /** Check that a string value is a valid [LocalDate]. */
+    val localDate: JSONExpect.() -> Unit = {
+        try {
+            LocalDate.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a LocalDate - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [LocalDateTime]. */
+    val localDateTime: JSONExpect.() -> Unit = {
+        try {
+            LocalDateTime.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a LocalDateTime - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [OffsetDateTime]. */
+    val offsetDateTime: JSONExpect.() -> Unit = {
+        try {
+            OffsetDateTime.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a OffsetDateTime - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [OffsetTime]. */
+    val offsetTime: JSONExpect.() -> Unit = {
+        try {
+            OffsetTime.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a OffsetTime - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [ZonedDateTime]. */
+    val zonedDateTime: JSONExpect.() -> Unit = {
+        try {
+            ZonedDateTime.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a ZonedDateTime - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [YearMonth]. */
+    val yearMonth: JSONExpect.() -> Unit = {
+        try {
+            YearMonth.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a YearMonth - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [Year]. */
+    val year: JSONExpect.() -> Unit = {
+        try {
+            Year.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a Year - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [Duration]. */
+    val duration: JSONExpect.() -> Unit = {
+        try {
+            Duration.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a Duration - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [Period]. */
+    val period: JSONExpect.() -> Unit = {
+        try {
+            Period.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a Period - \"$node\"")
+        }
+    }
+
+    /**
+     * Check the length of a string value.
+     *
+     * @param   expected        the expected length
+     * @throws  AssertionError  if the length is incorrect
+     */
+    fun length(expected: Int): JSONExpect.() -> Unit = {
+        nodeAsString.let {
+            if (it.length != expected)
+                error("JSON string length doesn't match - Expected $expected, was ${it.length}")
+        }
+    }
+
+    /**
+     * Check the length of a string value as a range.
+     *
+     * @param   expected        the expected length as a range
+     * @throws  AssertionError  if the length is incorrect
+     */
+    fun length(expected: IntRange): JSONExpect.() -> Unit = {
+        nodeAsString.let {
+            if (it.length !in expected)
+                error("JSON string length doesn't match - Expected $expected, was ${it.length}")
+        }
+    }
+
+    /**
+     * Report error, including context path.
+     *
+     * @param   message     the error message
+     */
+    fun error(message: String): Nothing {
+        val context = if (path != null) "$path: " else ""
+        fail("$context$message")
+    }
+
+    private fun errorOnValue(expected: Any?, actual: Any?): Nothing {
+        error("JSON value doesn't match - Expected $expected, was $actual")
+    }
+
+    private fun errorOnType(expected: String): Nothing {
+        val type = when (node) {
             null -> "null"
             is Int -> "integer"
             is Long -> "long integer"
@@ -606,15 +826,15 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
             is Map<*, *> -> "object"
             else -> "unknown"
         }
-        fail("${prefix}JSON type doesn't match - Expected $expected, was $type")
+        error("JSON type doesn't match - Expected $expected, was $type")
     }
 
-    private fun failInCollection(actual: Any?) {
-        fail("${prefix}JSON value not in collection - $actual")
+    private fun errorInCollection(actual: Any?) {
+        error("JSON value not in collection - $actual")
     }
 
-    private fun failInRange(actual: Any?) {
-        fail("${prefix}JSON value not in range - $actual")
+    private fun errorInRange(actual: Any?) {
+        error("JSON value not in range - $actual")
     }
 
     private fun checkName(name: String): String =
@@ -623,27 +843,24 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
     private fun checkIndex(index: Int): Int = if (index >= 0) index else fail("JSON array index must not be negative")
 
     private fun getProperty(name: String): Any? {
-        if (obj !is Map<*, *>)
+        if (node !is Map<*, *>)
             fail("${propertyPath(name)}: Not a JSON object")
-        if (!obj.containsKey(name))
+        if (!node.containsKey(name))
             fail("${propertyPath(name)}: JSON property missing")
-        return obj[name]
+        return node[name]
     }
 
     private fun getItem(index: Int): Any? {
-        if (obj !is List<*>)
+        if (node !is List<*>)
             fail("${itemPath(index)}: Not a JSON array")
-        if (index !in obj.indices)
+        if (index !in node.indices)
             fail("${itemPath(index)}: JSON array index out of bounds")
-        return obj[index]
+        return node[index]
     }
 
-    private fun propertyPath(name: String) = if (pathInfo != null) "$pathInfo.$name" else name
+    private fun propertyPath(name: String) = if (path != null) "$path.$name" else name
 
-    private fun itemPath(index: Int) = if (pathInfo != null) "$pathInfo[$index]" else "[$index]"
-
-    private val prefix: String
-        get() = if (pathInfo != null) "$pathInfo: " else ""
+    private fun itemPath(index: Int) = if (path != null) "$path[$index]" else "[$index]"
 
     companion object {
 
