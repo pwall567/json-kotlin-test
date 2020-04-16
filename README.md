@@ -137,6 +137,21 @@ content of the UUID, you can specify:
     property("id", uuid)
 ```
 
+### Check for `java.time.xxx` classes
+
+Again, starting from version 0.4, if you wish to check that a string contains a valid representation of one of the
+`java.time.xxx` classes, but don't care about the actual value, you can specify:
+```kotlin
+    property("field1", localDate)
+    property("field2", localDateTime)
+    property("field3", offsetDateTime)
+    property("field4", offsetTime)
+    property("field5", yearMonth)
+    property("field6", year)
+    property("field7", period)
+    property("field8", duration)
+```
+
 ## Dependency Specification
 
 The latest version of the library is 0.4, and it may be obtained from the Maven Central repository.

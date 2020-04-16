@@ -30,6 +30,15 @@ import kotlin.reflect.KType
 import kotlin.test.fail
 
 import java.math.BigDecimal
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.OffsetTime
+import java.time.Period
+import java.time.Year
+import java.time.YearMonth
+import java.time.ZonedDateTime
 import java.util.UUID
 
 import net.pwall.json.JSONTypeRef
@@ -628,13 +637,103 @@ class JSONExpect private constructor(
             error("JSON property not absent or null - $name")
     }
 
-    /** Check that a string value is a valid UUID. */
+    /** Check that a string value is a valid [UUID]. */
     val uuid: JSONExpect.() -> Unit = {
         try {
             UUID.fromString(nodeAsString)
         }
         catch (e: Exception) {
             error("JSON string is not a UUID - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [LocalDate]. */
+    val localDate: JSONExpect.() -> Unit = {
+        try {
+            LocalDate.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a LocalDate - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [LocalDateTime]. */
+    val localDateTime: JSONExpect.() -> Unit = {
+        try {
+            LocalDateTime.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a LocalDateTime - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [OffsetDateTime]. */
+    val offsetDateTime: JSONExpect.() -> Unit = {
+        try {
+            OffsetDateTime.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a OffsetDateTime - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [OffsetTime]. */
+    val offsetTime: JSONExpect.() -> Unit = {
+        try {
+            OffsetTime.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a OffsetTime - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [ZonedDateTime]. */
+    val zonedDateTime: JSONExpect.() -> Unit = {
+        try {
+            ZonedDateTime.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a ZonedDateTime - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [YearMonth]. */
+    val yearMonth: JSONExpect.() -> Unit = {
+        try {
+            YearMonth.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a YearMonth - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [Year]. */
+    val year: JSONExpect.() -> Unit = {
+        try {
+            Year.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a Year - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [Duration]. */
+    val duration: JSONExpect.() -> Unit = {
+        try {
+            Duration.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a Duration - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [Period]. */
+    val period: JSONExpect.() -> Unit = {
+        try {
+            Period.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a Period - \"$node\"")
         }
     }
 

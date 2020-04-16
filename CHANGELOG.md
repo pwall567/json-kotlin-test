@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - `JSONExpect`: `count` may now be specified as an `IntRange`
 - `JSONExpect`: `length` checks the length of a string
 - `JSONExpect`: `uuid` checks a string as a UUID
+- `JSONExpect`: `localDate` etc. checks a string as a `java.time.xxx` class
 
 ## [0.3] - 2020-04-16
 ### Changed
