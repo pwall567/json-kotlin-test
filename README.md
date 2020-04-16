@@ -162,6 +162,8 @@ Again, starting from version 0.4, if you wish to check that a string contains a 
 ## Dependency Specification
 
 The latest version of the library is 0.4, and it may be obtained from the Maven Central repository.
+(The following dependency declarations assume that the library will be included for test purposes; this is
+expected to be its principal use.)
 
 ### Maven
 ```xml
@@ -169,15 +171,16 @@ The latest version of the library is 0.4, and it may be obtained from the Maven 
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-test</artifactId>
       <version>0.4</version>
+      <scope>test</scope>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin-test:0.4'
+    testImplementation 'net.pwall.json:json-kotlin-test:0.4'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin-test:0.4")
+    testImplementation("net.pwall.json:json-kotlin-test:0.4")
 ```
 
 Peter Wall
