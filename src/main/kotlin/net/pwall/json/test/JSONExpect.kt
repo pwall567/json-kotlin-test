@@ -30,6 +30,7 @@ import kotlin.reflect.KType
 import kotlin.test.fail
 
 import java.math.BigDecimal
+import java.util.UUID
 
 import net.pwall.json.JSONTypeRef
 import net.pwall.json.parseJSON
@@ -124,7 +125,7 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
         if (obj !is Int)
             failOnType("integer")
         if (obj !in expected)
-            failInRange(obj)
+            failOnValue(expected, obj)
     }
 
     /**
@@ -137,7 +138,7 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
         if (obj !is Long)
             failOnType("long integer")
         if (obj !in expected)
-            failInRange(obj)
+            failOnValue(expected, obj)
     }
 
     /**
@@ -235,6 +236,16 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
      */
     inline fun <reified T: Any> value(expected: Collection<T?>) {
         valueInCollection(expected, JSONTypeRef.create<T>(nullable = true).refType)
+    }
+
+    /**
+     * Apply pre-configured tests to the value.
+     *
+     * @param   tests           the tests
+     * @throws  AssertionError  if thrown by any of the tests
+     */
+    fun value(tests: JSONExpect.() -> Unit) {
+        tests.invoke(this)
     }
 
     /**
@@ -559,7 +570,24 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
             else -> fail("${prefix}JSON count check not on array or object")
         }
         if (length != expected)
-            fail("${prefix}JSON length doesn't match - Expected $expected, was $length")
+            fail("${prefix}JSON count doesn't match - Expected $expected, was $length")
+    }
+
+    /**
+     * Check the count of array items or object properties as a range.
+     *
+     * @param   expected        the expected range
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun count(expected: IntRange) {
+        require(expected.first >= 0) { "JSON array or object count must not be negative" }
+        val length = when (obj) {
+            is List<*> -> obj.size
+            is Map<*, *> -> obj.size
+            else -> fail("${prefix}JSON count check not on array or object")
+        }
+        if (length !in expected)
+            fail("${prefix}JSON count doesn't match - Expected $expected, was $length")
     }
 
     /**
@@ -588,6 +616,44 @@ class JSONExpect private constructor(private val obj: Any?, private val pathInfo
             fail("${prefix}Not a JSON object")
         if (obj[name] != null)
             fail("${prefix}JSON property not absent or null - $name")
+    }
+
+    /** Check that a string value is a valid UUID. */
+    val uuid: JSONExpect.() -> Unit = {
+        if (obj !is String)
+            failOnType("string")
+        try {
+            UUID.fromString(obj)
+        }
+        catch (e: Exception) {
+            fail("${prefix}JSON string is not a UUID")
+        }
+    }
+
+    /**
+     * Check the length of a string value.
+     *
+     * @param   expected        the expected length
+     * @throws  AssertionError  if the length is incorrect
+     */
+    fun length(expected: Int): JSONExpect.() -> Unit = {
+        if (obj !is String)
+            failOnType("string")
+        if (obj.length != expected)
+            fail("${prefix}JSON string length doesn't match - Expected $expected, was ${obj.length}")
+    }
+
+    /**
+     * Check the length of a string value as a range.
+     *
+     * @param   expected        the expected length as a range
+     * @throws  AssertionError  if the length is incorrect
+     */
+    fun length(expected: IntRange): JSONExpect.() -> Unit = {
+        if (obj !is String)
+            failOnType("string")
+        if (obj.length !in expected)
+            fail("${prefix}JSON string length doesn't match - Expected $expected, was ${obj.length}")
     }
 
     private fun failOnValue(expected: Any, actual: Any): Nothing {

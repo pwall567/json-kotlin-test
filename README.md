@@ -70,6 +70,7 @@ Both forms are equivalent, and the `propertyAbsentOrNull` function tests for eit
 ### `count`
 
 This specifies the expected count of members of an array or object.
+The expected count may be specified as an integer value or an `IntRange`.
 
 ### `value`
 
@@ -118,25 +119,43 @@ For example:
 As with `Collection`, the range must be of the appropriate type, and each of the functions `value`, `property` and
 `item` has an overloaded version that takes a range.
 
+### Check for String Length
+
+From version 0.4 onwards, the `length` function is available to check the length of a string.
+If, for example, you expect a string to contain between 5 and 20 characters, but you don't need to check the contents,
+you can specify:
+```kotlin
+    property("name", length(5..20))
+```
+The length may be specified as an integer value or an `IntRange`.
+
+### Check for UUID
+
+Also starting from version 0.4, if you wish to check that a string contains a UUID, but you are not concerned about the
+content of the UUID, you can specify:
+```kotlin
+    property("id", uuid)
+```
+
 ## Dependency Specification
 
-The latest version of the library is 0.3, and it may be obtained from the Maven Central repository.
+The latest version of the library is 0.4, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-test</artifactId>
-      <version>0.3</version>
+      <version>0.4</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin-test:0.3'
+    implementation 'net.pwall.json:json-kotlin-test:0.4'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin-test:0.3")
+    implementation("net.pwall.json:json-kotlin-test:0.4")
 ```
 
 Peter Wall

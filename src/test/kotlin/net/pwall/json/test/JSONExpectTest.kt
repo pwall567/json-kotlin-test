@@ -180,7 +180,26 @@ class JSONExpectTest {
                 count(3)
             }
         }
-        expect("JSON length doesn't match - Expected 3, was 2") { exception.message }
+        expect("JSON count doesn't match - Expected 3, was 2") { exception.message }
+    }
+
+    @Test fun `should test number of properties as range`() {
+        val json = """{"abc":1,"def":-8}"""
+        expectJSON(json) {
+            count(1..2)
+            property("abc", 1)
+            property("def", -8)
+        }
+    }
+
+    @Test fun `should fail on incorrect test of number of properties as range`() {
+        val json = """{"abc":1,"def":-8}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                count(3..5)
+            }
+        }
+        expect("JSON count doesn't match - Expected 3..5, was 2") { exception.message }
     }
 
     @Test fun `should test int array item`() {
@@ -448,7 +467,29 @@ class JSONExpectTest {
                 }
             }
         }
-        expect("primes: JSON length doesn't match - Expected 9, was 10") { exception.message }
+        expect("primes: JSON count doesn't match - Expected 9, was 10") { exception.message }
+    }
+
+    @Test fun `should test count of array items as range`() {
+        val json = """{"primes":[1,2,3,5,7,11,13,17,19,23]}"""
+        expectJSON(json) {
+            property("primes") {
+                count(8..12)
+                item(9, 23)
+            }
+        }
+    }
+
+    @Test fun `should fail on test of count of array items as range`() {
+        val json = """{"primes":[1,2,3,5,7,11,13,17,19,23]}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("primes") {
+                    count(2..9)
+                }
+            }
+        }
+        expect("primes: JSON count doesn't match - Expected 2..9, was 10") { exception.message }
     }
 
     @Test fun `should fail on test of missing property`() {
@@ -941,7 +982,7 @@ class JSONExpectTest {
                 value(120..125)
             }
         }
-        expect("JSON value not in range - 126") { exception.message }
+        expect("JSON value doesn't match - Expected 120..125, was 126") { exception.message }
     }
 
     @Test fun `should test int property as member of a range`() {
@@ -958,7 +999,7 @@ class JSONExpectTest {
                 property("abc", 120..125)
             }
         }
-        expect("abc: JSON value not in range - 126") { exception.message }
+        expect("abc: JSON value doesn't match - Expected 120..125, was 126") { exception.message }
     }
 
     @Test fun `should test int array item as member of a range`() {
@@ -975,7 +1016,7 @@ class JSONExpectTest {
                 item(0, 120..125)
             }
         }
-        expect("[0]: JSON value not in range - 126") { exception.message }
+        expect("[0]: JSON value doesn't match - Expected 120..125, was 126") { exception.message }
     }
 
     @Test fun `should test long value as member of a range`() {
@@ -986,13 +1027,15 @@ class JSONExpectTest {
     }
 
     @Test fun `should fail on incorrect test of long value as member of a range`() {
-        val json = "123456789123456779"
+        val json = "123456789123456790"
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
-                value(123456789123456780..123456789123456789)
+                value(0..123456789123456789)
             }
         }
-        expect("JSON value not in range - 123456789123456779") { exception.message }
+        expect("JSON value doesn't match - Expected 0..123456789123456789, was 123456789123456790") {
+            exception.message
+        }
     }
 
     @Test fun `should test long property as member of a range`() {
@@ -1003,13 +1046,15 @@ class JSONExpectTest {
     }
 
     @Test fun `should fail on incorrect test of long property as member of a range`() {
-        val json = """{"abc":123456789123456779}"""
+        val json = """{"abc":123456789123456790}"""
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
-                property("abc", 123456789123456780..123456789123456789)
+                property("abc", 0..123456789123456789)
             }
         }
-        expect("abc: JSON value not in range - 123456789123456779") { exception.message }
+        expect("abc: JSON value doesn't match - Expected 0..123456789123456789, was 123456789123456790") {
+            exception.message
+        }
     }
 
     @Test fun `should test long array item as member of a range`() {
@@ -1020,13 +1065,15 @@ class JSONExpectTest {
     }
 
     @Test fun `should fail on incorrect test of long array item as member of a range`() {
-        val json = "[123456789123456779]"
+        val json = "[123456789123456790]"
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
-                item(0, 123456789123456780..123456789123456789)
+                item(0, 0..123456789123456789)
             }
         }
-        expect("[0]: JSON value not in range - 123456789123456779") { exception.message }
+        expect("[0]: JSON value doesn't match - Expected 0..123456789123456789, was 123456789123456790") {
+            exception.message
+        }
     }
 
     @Test fun `should test string value as member of a range`() {
@@ -1108,6 +1155,169 @@ class JSONExpectTest {
             }
         }
         expect("[0]: Can't perform test using collection of kotlin.Char?") { exception.message }
+    }
+
+    @Test fun `should test string value as UUID`() {
+        val json = "\"f347ab96-7f62-11ea-ba4e-27278a06d491\""
+        expectJSON(json) {
+            value(uuid)
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string value as UUID`() {
+        val json = "\"Not a UUID\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(uuid)
+            }
+        }
+        expect("JSON string is not a UUID") { exception.message }
+    }
+
+    @Test fun `should fail on test of non-string value as UUID`() {
+        val json = "12345"
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(uuid)
+            }
+        }
+        expect("JSON type doesn't match - Expected string, was integer") { exception.message }
+    }
+
+    @Test fun `should test string property as UUID`() {
+        val json = """{"abc":"f347ab96-7f62-11ea-ba4e-27278a06d491"}"""
+        expectJSON(json) {
+            property("abc", uuid)
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string property as UUID`() {
+        val json = """{"abc":"not a UUID"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", uuid)
+            }
+        }
+        expect("abc: JSON string is not a UUID") { exception.message }
+    }
+
+    @Test fun `should test string array item as UUID`() {
+        val json = """["f347ab96-7f62-11ea-ba4e-27278a06d491"]"""
+        expectJSON(json) {
+            item(0, uuid)
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string array item as UUID`() {
+        val json = """["not a UUID"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, uuid)
+            }
+        }
+        expect("[0]: JSON string is not a UUID") { exception.message }
+    }
+
+    @Test fun `should test string value length`() {
+        val json = "\"Hello!\""
+        expectJSON(json) {
+            value(length(6))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string value length`() {
+        val json = "\"Hello!\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(length(5))
+            }
+        }
+        expect("JSON string length doesn't match - Expected 5, was 6") { exception.message }
+    }
+
+    @Test fun `should test string value length as a range`() {
+        val json = "\"Hello!\""
+        expectJSON(json) {
+            value(length(4..10))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string value length as a range`() {
+        val json = "\"Hello!\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(length(1..5))
+            }
+        }
+        expect("JSON string length doesn't match - Expected 1..5, was 6") { exception.message }
+    }
+
+    @Test fun `should test string property length`() {
+        val json = """{"abc":"Hello!"}"""
+        expectJSON(json) {
+            property("abc", length(6))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string property length`() {
+        val json = """{"abc":"Hello!"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", length(5))
+            }
+        }
+        expect("abc: JSON string length doesn't match - Expected 5, was 6") { exception.message }
+    }
+
+    @Test fun `should test string property length as a range`() {
+        val json = """{"abc":"Hello!"}"""
+        expectJSON(json) {
+            property("abc", length(4..10))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string property length as a range`() {
+        val json = """{"abc":"Hello!"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", length(1..4))
+            }
+        }
+        expect("abc: JSON string length doesn't match - Expected 1..4, was 6") { exception.message }
+    }
+
+    @Test fun `should test string array item length`() {
+        val json = """["Hello!"]"""
+        expectJSON(json) {
+            item(0, length(6))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string array item length`() {
+        val json = """["Hello!"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, length(5))
+            }
+        }
+        expect("[0]: JSON string length doesn't match - Expected 5, was 6") { exception.message }
+    }
+
+    @Test fun `should test string array item length as a range`() {
+        val json = """["Hello!"]"""
+        expectJSON(json) {
+            item(0, length(4..10))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string array item length as a range`() {
+        val json = """["Hello!"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, length(1..4))
+            }
+        }
+        expect("[0]: JSON string length doesn't match - Expected 1..4, was 6") { exception.message }
     }
 
 }
