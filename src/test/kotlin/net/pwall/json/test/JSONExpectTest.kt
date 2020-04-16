@@ -1767,6 +1767,67 @@ class JSONExpectTest {
         expect("[0]: JSON string is not a Period - \"not a Period\"") { exception.message }
     }
 
+    @Test fun `should test string value against regex`() {
+        val json = "\"abc\""
+        expectJSON(json) {
+            value(Regex("^[a-z]+$"))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string value against regex`() {
+        val json = "\"abc1\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(Regex("^[a-z]+$"))
+            }
+        }
+        expect("JSON string doesn't match regex - Expected ^[a-z]+\$, was \"abc1\"") { exception.message }
+    }
+
+    @Test fun `should fail on test of non-string value against regex`() {
+        val json = "12345"
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(Regex("^[a-z]+$"))
+            }
+        }
+        expect("JSON type doesn't match - Expected string, was integer") { exception.message }
+    }
+
+    @Test fun `should test string property against regex`() {
+        val json = """{"prop":"abc"}"""
+        expectJSON(json) {
+            property("prop", Regex("^[a-z]+$"))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string property against regex`() {
+        val json = """{"prop":"abc1"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("prop", Regex("^[a-z]+$"))
+            }
+        }
+        expect("prop: JSON string doesn't match regex - Expected ^[a-z]+\$, was \"abc1\"") { exception.message }
+    }
+
+    @Test fun `should test string array item against regex`() {
+        val json = """["abc"]"""
+        expectJSON(json) {
+            item(0, Regex("^[a-z]+$"))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string array item against regex`() {
+        val json = """["abc1"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, Regex("^[a-z]+$"))
+            }
+        }
+        expect("[0]: JSON string doesn't match regex - Expected ^[a-z]+\$, was \"abc1\"") { exception.message }
+    }
+
     @Test fun `should test string value length`() {
         val json = "\"Hello!\""
         expectJSON(json) {

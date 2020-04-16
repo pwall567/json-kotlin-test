@@ -129,6 +129,13 @@ you can specify:
 ```
 The length may be specified as an integer value or an `IntRange`.
 
+### Check against `Regex`
+
+Another new feature in version 0.4 is the ability to check a string against a `Regex`, for example:
+```kotlin
+    property("name", Regex("^[A-Za-z]+$"))
+```
+
 ### Check for UUID
 
 Also starting from version 0.4, if you wish to check that a string contains a UUID, but you are not concerned about the

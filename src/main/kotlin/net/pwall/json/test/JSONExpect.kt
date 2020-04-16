@@ -139,6 +139,17 @@ class JSONExpect private constructor(
     }
 
     /**
+     * Check the value as a [String] against a [Regex].
+     *
+     * @param   expected        the [Regex]
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun value(expected: Regex) {
+        if (!(expected matches nodeAsString))
+            error("JSON string doesn't match regex - Expected $expected, was \"$node\"")
+    }
+
+    /**
      * Check the value as a member of an [IntRange].
      *
      * @param   expected        the [IntRange]
@@ -333,6 +344,19 @@ class JSONExpect private constructor(
     }
 
     /**
+     * Check a property as a [String] against a [Regex].
+     *
+     * @param   name            the property name
+     * @param   expected        the [Regex]
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun property(name: String, expected: Regex) {
+        checkName(name).let {
+            JSONExpect(getProperty(it), propertyPath(it)).value(expected)
+        }
+    }
+
+    /**
      * Check a property as a member of an [IntRange].
      *
      * @param   name            the property name
@@ -481,6 +505,19 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is incorrect
      */
     fun item(index: Int, expected: String?) {
+        checkIndex(index).let {
+            JSONExpect(getItem(it), itemPath(it)).value(expected)
+        }
+    }
+
+    /**
+     * Check a property as a [String] against a [Regex].
+     *
+     * @param   index           the array index
+     * @param   expected        the [Regex]
+     * @throws  AssertionError  if the value is incorrect
+     */
+    fun item(index: Int, expected: Regex) {
         checkIndex(index).let {
             JSONExpect(getItem(it), itemPath(it)).value(expected)
         }
