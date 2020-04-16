@@ -1320,4 +1320,16 @@ class JSONExpectTest {
         expect("[0]: JSON string length doesn't match - Expected 1..4, was 6") { exception.message }
     }
 
+    @Test fun `should fail with custom error message`() {
+        val json = """{"abc":123}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc") {
+                    error("Custom error message $path = $node")
+                }
+            }
+        }
+        expect("abc: Custom error message abc = 123") { exception.message }
+    }
+
 }
