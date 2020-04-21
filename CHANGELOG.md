@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.4.1] - 2020-04-21
+### Changed
+- `pom.xml`: updated dependency version
+
 ## [0.4] - 2020-04-16
 ### Changed
 - `JSONExpect`: `count` may now be specified as an `IntRange`
