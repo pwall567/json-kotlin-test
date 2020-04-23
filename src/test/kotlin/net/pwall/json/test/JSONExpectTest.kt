@@ -1134,7 +1134,7 @@ class JSONExpectTest {
                 value(setOf('C'))
             }
         }
-        expect("Can't perform test using collection of kotlin.Char?") { exception.message }
+        expect("Can't perform test using collection of class kotlin.Char") { exception.message }
     }
 
     @Test fun `should fail on test for property as member of a collection of other class`() {
@@ -1144,7 +1144,7 @@ class JSONExpectTest {
                 property("abc", setOf('C'))
             }
         }
-        expect("abc: Can't perform test using collection of kotlin.Char?") { exception.message }
+        expect("abc: Can't perform test using collection of class kotlin.Char") { exception.message }
     }
 
     @Test fun `should fail on test for array item as member of a collection of other class`() {
@@ -1154,7 +1154,7 @@ class JSONExpectTest {
                 item(0, setOf('C'))
             }
         }
-        expect("[0]: Can't perform test using collection of kotlin.Char?") { exception.message }
+        expect("[0]: Can't perform test using collection of class kotlin.Char") { exception.message }
     }
 
     @Test fun `should test string value as UUID`() {
