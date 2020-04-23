@@ -26,7 +26,6 @@
 package net.pwall.json.test
 
 import kotlin.reflect.KClass
-import kotlin.reflect.KType
 import kotlin.test.fail
 
 import java.math.BigDecimal
@@ -41,8 +40,19 @@ import java.time.YearMonth
 import java.time.ZonedDateTime
 import java.util.UUID
 
-import net.pwall.json.JSONTypeRef
-import net.pwall.json.parseJSON
+import net.pwall.json.JSON
+import net.pwall.json.JSONArray
+import net.pwall.json.JSONBoolean
+import net.pwall.json.JSONDecimal
+import net.pwall.json.JSONDouble
+import net.pwall.json.JSONException
+import net.pwall.json.JSONFloat
+import net.pwall.json.JSONInteger
+import net.pwall.json.JSONLong
+import net.pwall.json.JSONObject
+import net.pwall.json.JSONString
+import net.pwall.json.JSONValue
+import net.pwall.json.JSONZero
 
 /**
  * Implementation class for `expectJSON()` function.
@@ -175,12 +185,11 @@ class JSONExpect private constructor(
      * Check the value as a member of a [ClosedRange].  This will normally be invoked via the inline function.
      *
      * @param   expected        the [ClosedRange]
-     * @param   type            the type of the elements of the [ClosedRange]
+     * @param   itemClass       the class of the elements of the [ClosedRange]
      * @throws  AssertionError  if the value is not within the [ClosedRange]
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T: Comparable<T>> valueInRange(expected: ClosedRange<T>, type: KType) {
-        val itemClass = type.classifier as? KClass<*> ?: error("Can't determine type of ClosedRange")
+    fun <T: Comparable<T>> valueInRange(expected: ClosedRange<T>, itemClass: KClass<*>) {
         when (itemClass) {
             Int::class -> {
                 if (node !is Int)
@@ -206,7 +215,7 @@ class JSONExpect private constructor(
                 if (node as T !in expected)
                     errorInRange("\"$node\"")
             }
-            else -> error("Can't perform test using range of $type")
+            else -> error("Can't perform test using range of $itemClass")
         }
     }
 
@@ -217,18 +226,17 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is not within the [ClosedRange]
      */
     inline fun <reified T: Comparable<T>> value(expected: ClosedRange<T>) {
-        valueInRange(expected, JSONTypeRef.create<T>(nullable = true).refType)
+        valueInRange(expected, T::class)
     }
 
     /**
      * Check the value as a member of a [Collection].  This will normally be invoked via the inline function.
      *
      * @param   expected        the [Collection]
-     * @param   type            the type of the elements of the [Collection]
+     * @param   itemClass       the class of the elements of the [Collection]
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
-    fun <T> valueInCollection(expected: Collection<T>, type: KType) {
-        val itemClass = type.classifier as? KClass<*> ?: error("Can't determine type of Collection")
+    fun <T> valueInCollection(expected: Collection<T>, itemClass: KClass<*>) {
         when (itemClass) {
             Int::class -> {
                 if (node != null && node !is Int)
@@ -254,7 +262,7 @@ class JSONExpect private constructor(
                 if (!expected.contains(node))
                     errorInCollection(if (node == null) "null" else "\"$node\"")
             }
-            else -> error("Can't perform test using collection of $type")
+            else -> error("Can't perform test using collection of $itemClass")
         }
     }
 
@@ -265,7 +273,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
     inline fun <reified T: Any> value(expected: Collection<T?>) {
-        valueInCollection(expected, JSONTypeRef.create<T>(nullable = true).refType)
+        valueInCollection(expected, T::class)
     }
 
     /**
@@ -387,12 +395,12 @@ class JSONExpect private constructor(
      *
      * @param   name            the property name
      * @param   expected        the [ClosedRange]
-     * @param   type            the type of the elements of the [ClosedRange]
+     * @param   itemClass       the class of the elements of the [ClosedRange]
      * @throws  AssertionError  if the value is not within the [ClosedRange]
      */
-    fun <T: Comparable<T>> propertyInRange(name: String, expected: ClosedRange<T>, type: KType) {
+    fun <T: Comparable<T>> propertyInRange(name: String, expected: ClosedRange<T>, itemClass: KClass<*>) {
         checkName(name).let {
-            JSONExpect(getProperty(it), propertyPath(it)).valueInRange(expected, type)
+            JSONExpect(getProperty(it), propertyPath(it)).valueInRange(expected, itemClass)
         }
     }
 
@@ -404,7 +412,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is not within the [ClosedRange]
      */
     inline fun <reified T: Comparable<T>> property(name: String, expected: ClosedRange<T>) {
-        propertyInRange(name, expected, JSONTypeRef.create<T>(nullable = true).refType)
+        propertyInRange(name, expected, T::class)
     }
 
     /**
@@ -412,12 +420,12 @@ class JSONExpect private constructor(
      *
      * @param   name            the property name
      * @param   expected        the [Collection]
-     * @param   type            the type of the elements of the [Collection]
+     * @param   itemClass       the class of the elements of the [Collection]
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
-    fun <T> propertyInCollection(name: String, expected: Collection<T>, type: KType) {
+    fun <T> propertyInCollection(name: String, expected: Collection<T>, itemClass: KClass<*>) {
         checkName(name).let {
-            JSONExpect(getProperty(it), propertyPath(it)).valueInCollection(expected, type)
+            JSONExpect(getProperty(it), propertyPath(it)).valueInCollection(expected, itemClass)
         }
     }
 
@@ -429,7 +437,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
     inline fun <reified T: Any> property(name: String, expected: Collection<T?>) {
-        propertyInCollection(name, expected, JSONTypeRef.create<T>(nullable = true).refType)
+        propertyInCollection(name, expected, T::class)
     }
 
     /**
@@ -554,12 +562,12 @@ class JSONExpect private constructor(
      *
      * @param   index           the array index
      * @param   expected        the [ClosedRange]
-     * @param   type            the type of the elements of the [ClosedRange]
+     * @param   itemClass       the class of the elements of the [ClosedRange]
      * @throws  AssertionError  if the value is not within the [ClosedRange]
      */
-    fun <T: Comparable<T>> itemInRange(index: Int, expected: ClosedRange<T>, type: KType) {
+    fun <T: Comparable<T>> itemInRange(index: Int, expected: ClosedRange<T>, itemClass: KClass<*>) {
         checkIndex(index).let {
-            JSONExpect(getItem(it), itemPath(it)).valueInRange(expected, type)
+            JSONExpect(getItem(it), itemPath(it)).valueInRange(expected, itemClass)
         }
     }
 
@@ -571,7 +579,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is not within the [ClosedRange]
      */
     inline fun <reified T: Comparable<T>> item(index: Int, expected: ClosedRange<T>) {
-        itemInRange(index, expected, JSONTypeRef.create<T>(nullable = true).refType)
+        itemInRange(index, expected, T::class)
     }
 
     /**
@@ -579,12 +587,12 @@ class JSONExpect private constructor(
      *
      * @param   index           the array index
      * @param   expected        the [Collection]
-     * @param   type            the type of the elements of the [Collection]
+     * @param   itemClass       the class of the elements of the [Collection]
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
-    fun <T> itemInCollection(index: Int, expected: Collection<T>, type: KType) {
+    fun <T> itemInCollection(index: Int, expected: Collection<T>, itemClass: KClass<*>) {
         checkIndex(index).let {
-            JSONExpect(getItem(it), itemPath(it)).valueInCollection(expected, type)
+            JSONExpect(getItem(it), itemPath(it)).valueInCollection(expected, itemClass)
         }
     }
 
@@ -596,7 +604,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
     inline fun <reified T: Any> item(index: Int, expected: Collection<T?>) {
-        itemInCollection(index, expected, JSONTypeRef.create<T>(nullable = true).refType)
+        itemInCollection(index, expected, T::class)
     }
 
     /**
@@ -873,12 +881,32 @@ class JSONExpect private constructor(
          */
         fun expectJSON(json: String, tests: JSONExpect.() -> Unit) {
             val obj = try {
-                json.parseJSON<Any>()
+                convertJSONTypes(JSON.parse(json))
             }
             catch (e: Exception) {
                 fail("Unable to parse JSON - ${e.message}")
             }
             JSONExpect(obj).tests()
+        }
+
+        private fun convertJSONTypes(json: JSONValue?): Any? {
+            return when (json) {
+                null -> null
+                is JSONString -> json.get()
+                is JSONInteger -> json.get()
+                is JSONLong -> json.get()
+                is JSONFloat -> json.get()
+                is JSONDouble -> json.get()
+                is JSONDecimal -> json.get()
+                is JSONBoolean -> json.get()
+                is JSONZero -> 0
+                is JSONArray -> List(json.size) { i -> convertJSONTypes(json[i]) }
+                is JSONObject -> LinkedHashMap<String, Any?>(json.size).apply {
+                    for (entry in json.entries)
+                        set(entry.key, convertJSONTypes(entry.value))
+                }
+                else -> throw JSONException("Not a JSONValue - ${json::class}")
+            }
         }
 
     }
