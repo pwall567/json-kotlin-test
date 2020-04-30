@@ -524,6 +524,20 @@ class JSONExpectTest {
         }
     }
 
+    @Test fun `should test for property present`() {
+        val json = """{"abc":1,"def":-8}"""
+        expectJSON(json) {
+            propertyPresent("def")
+        }
+    }
+
+    @Test fun `should test for property non-null`() {
+        val json = """{"abc":1,"def":-8}"""
+        expectJSON(json) {
+            property("def", nonNull)
+        }
+    }
+
     @Test fun `should fail on incorrect test for property absent`() {
         val json = """{"abc":1,"def":-8}"""
         val exception = assertFailsWith<AssertionError> {
@@ -544,6 +558,36 @@ class JSONExpectTest {
         expect("JSON property not absent or null - def") { exception.message }
     }
 
+    @Test fun `should fail on incorrect test for property present`() {
+        val json = """{"abc":1,"def":-8}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                propertyPresent("ghi")
+            }
+        }
+        expect("JSON property not present - ghi") { exception.message }
+    }
+
+    @Test fun `should fail on incorrect test for property non-null 1`() {
+        val json = """{"abc":1,"def":-8}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("ghi", nonNull)
+            }
+        }
+        expect("ghi: JSON property missing") { exception.message }
+    }
+
+    @Test fun `should fail on incorrect test for property non-null 2`() {
+        val json = """{"abc":1,"def":-8,"ghi":null}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("ghi", nonNull)
+            }
+        }
+        expect("ghi: JSON item is null") { exception.message }
+    }
+
     @Test fun `should test for nested property absent`() {
         val json = """{"outer":{"field":99}}"""
         expectJSON(json) {
@@ -558,6 +602,24 @@ class JSONExpectTest {
         expectJSON(json) {
             property("outer") {
                 propertyAbsentOrNull("missing")
+            }
+        }
+    }
+
+    @Test fun `should test for nested property present`() {
+        val json = """{"outer":{"field":99}}"""
+        expectJSON(json) {
+            property("outer") {
+                propertyPresent("field")
+            }
+        }
+    }
+
+    @Test fun `should test for nested property non-null`() {
+        val json = """{"outer":{"field":99}}"""
+        expectJSON(json) {
+            property("outer") {
+                property("field", nonNull)
             }
         }
     }
@@ -584,6 +646,42 @@ class JSONExpectTest {
             }
         }
         expect("outer: JSON property not absent or null - field") { exception.message }
+    }
+
+    @Test fun `should fail on incorrect test for nested property present`() {
+        val json = """{"outer":{"field":99}}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("outer") {
+                    propertyPresent("missing")
+                }
+            }
+        }
+        expect("outer: JSON property not present - missing") { exception.message }
+    }
+
+    @Test fun `should fail on incorrect test for nested property non-null 1`() {
+        val json = """{"outer":{"field":99}}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("outer") {
+                    property("other", nonNull)
+                }
+            }
+        }
+        expect("outer.other: JSON property missing") { exception.message }
+    }
+
+    @Test fun `should fail on incorrect test for nested property non-null 2`() {
+        val json = """{"outer":{"field":99,"other":null}}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("outer") {
+                    property("other", nonNull)
+                }
+            }
+        }
+        expect("outer.other: JSON item is null") { exception.message }
     }
 
     @Test fun `should fail when comparing object as value`() {
@@ -1127,6 +1225,57 @@ class JSONExpectTest {
         expect("[0]: JSON value not in range - \"abcde\"") { exception.message }
     }
 
+    @Test fun `should test decimal value as member of a range`() {
+        val json = "27.25"
+        expectJSON(json) {
+            value(BigDecimal("27.00")..BigDecimal("27.50"))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of decimal value as member of a range`() {
+        val json = "27.25"
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(BigDecimal("27.50")..BigDecimal("27.99"))
+            }
+        }
+        expect("JSON value not in range - 27.25") { exception.message }
+    }
+
+    @Test fun `should test decimal property as member of a range`() {
+        val json = """{"prop":27.25}"""
+        expectJSON(json) {
+            property("prop", BigDecimal("27.00")..BigDecimal("27.50"))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of decimal property as member of a range`() {
+        val json = """{"prop":27.25}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("prop", BigDecimal("27.50")..BigDecimal("27.99"))
+            }
+        }
+        expect("prop: JSON value not in range - 27.25") { exception.message }
+    }
+
+    @Test fun `should test decimal array item as member of a range`() {
+        val json = "[27.25]"
+        expectJSON(json) {
+            item(0, BigDecimal("27.00")..BigDecimal("27.50"))
+        }
+    }
+
+    @Test fun `should fail on incorrect test of decimal array item as member of a range`() {
+        val json = "[27.25]"
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, BigDecimal("27.50")..BigDecimal("27.99"))
+            }
+        }
+        expect("[0]: JSON value not in range - 27.25") { exception.message }
+    }
+
     @Test fun `should fail on test for value as member of a collection of other class`() {
         val json = "\"C\""
         val exception = assertFailsWith<AssertionError> {
@@ -1338,6 +1487,67 @@ class JSONExpectTest {
             }
         }
         expect("[0]: JSON string is not a LocalDateTime - \"not a LocalDateTime\"") { exception.message }
+    }
+
+    @Test fun `should test string value as LocalTime`() {
+        val json = "\"18:31:19.123\""
+        expectJSON(json) {
+            value(localTime)
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string value as LocalTime`() {
+        val json = "\"not a LocalTime\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(localTime)
+            }
+        }
+        expect("JSON string is not a LocalTime - \"not a LocalTime\"") { exception.message }
+    }
+
+    @Test fun `should fail on test of non-string value as LocalTime`() {
+        val json = "12345"
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(localTime)
+            }
+        }
+        expect("JSON type doesn't match - Expected string, was integer") { exception.message }
+    }
+
+    @Test fun `should test string property as LocalTime`() {
+        val json = """{"abc":"18:31:19.123"}"""
+        expectJSON(json) {
+            property("abc", localTime)
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string property as LocalTime`() {
+        val json = """{"abc":"not a LocalTime"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", localTime)
+            }
+        }
+        expect("abc: JSON string is not a LocalTime - \"not a LocalTime\"") { exception.message }
+    }
+
+    @Test fun `should test string array item as LocalTime`() {
+        val json = """["18:31:19.123"]"""
+        expectJSON(json) {
+            item(0, localTime)
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string array item as LocalTime`() {
+        val json = """["not a LocalTime"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, localTime)
+            }
+        }
+        expect("[0]: JSON string is not a LocalTime - \"not a LocalTime\"") { exception.message }
     }
 
     @Test fun `should test string value as OffsetDateTime`() {
@@ -1582,6 +1792,67 @@ class JSONExpectTest {
             }
         }
         expect("[0]: JSON string is not a YearMonth - \"not a YearMonth\"") { exception.message }
+    }
+
+    @Test fun `should test string value as MonthDay`() {
+        val json = "\"--04-30\""
+        expectJSON(json) {
+            value(monthDay)
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string value as MonthDay`() {
+        val json = "\"not a MonthDay\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(monthDay)
+            }
+        }
+        expect("JSON string is not a MonthDay - \"not a MonthDay\"") { exception.message }
+    }
+
+    @Test fun `should fail on test of non-string value as MonthDay`() {
+        val json = "12345"
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(monthDay)
+            }
+        }
+        expect("JSON type doesn't match - Expected string, was integer") { exception.message }
+    }
+
+    @Test fun `should test string property as MonthDay`() {
+        val json = """{"abc":"--04-30"}"""
+        expectJSON(json) {
+            property("abc", monthDay)
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string property as MonthDay`() {
+        val json = """{"abc":"not a MonthDay"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", monthDay)
+            }
+        }
+        expect("abc: JSON string is not a MonthDay - \"not a MonthDay\"") { exception.message }
+    }
+
+    @Test fun `should test string array item as MonthDay`() {
+        val json = """["--04-30"]"""
+        expectJSON(json) {
+            item(0, monthDay)
+        }
+    }
+
+    @Test fun `should fail on incorrect test of string array item as MonthDay`() {
+        val json = """["not a MonthDay"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, monthDay)
+            }
+        }
+        expect("[0]: JSON string is not a MonthDay - \"not a MonthDay\"") { exception.message }
     }
 
     @Test fun `should test string value as Year`() {

@@ -32,6 +32,8 @@ import java.math.BigDecimal
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.MonthDay
 import java.time.OffsetDateTime
 import java.time.OffsetTime
 import java.time.Period
@@ -658,7 +660,7 @@ class JSONExpect private constructor(
      * Check that a property is absent from an object.
      *
      * @param   name            the property name
-     * @throws  AssertionError  if the value is incorrect
+     * @throws  AssertionError  if the property is present
      */
     fun propertyAbsent(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
@@ -672,7 +674,7 @@ class JSONExpect private constructor(
      * Check that a property is absent from an object, or if present, is `null`.
      *
      * @param   name            the property name
-     * @throws  AssertionError  if the value is incorrect
+     * @throws  AssertionError  if the property is present and not `null`
      */
     fun propertyAbsentOrNull(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
@@ -680,6 +682,26 @@ class JSONExpect private constructor(
             error("Not a JSON object")
         if (node[name] != null)
             error("JSON property not absent or null - $name")
+    }
+
+    /**
+     * Check that a property is present in an object.
+     *
+     * @param   name            the property name
+     * @throws  AssertionError  if the property is absent
+     */
+    fun propertyPresent(name: String) {
+        require(name.isNotEmpty()) { "JSON property name must not be empty" }
+        if (node !is Map<*, *>)
+            error("Not a JSON object")
+        if (!node.containsKey(name))
+            error("JSON property not present - $name")
+    }
+
+    /** Check that a value is non-null. */
+    val nonNull: JSONExpect.() -> Unit = {
+        if (node == null)
+            error("JSON item is null")
     }
 
     /** Check that a string value is a valid [UUID]. */
@@ -709,6 +731,16 @@ class JSONExpect private constructor(
         }
         catch (e: Exception) {
             error("JSON string is not a LocalDateTime - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [LocalTime]. */
+    val localTime: JSONExpect.() -> Unit = {
+        try {
+            LocalTime.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a LocalTime - \"$node\"")
         }
     }
 
@@ -749,6 +781,16 @@ class JSONExpect private constructor(
         }
         catch (e: Exception) {
             error("JSON string is not a YearMonth - \"$node\"")
+        }
+    }
+
+    /** Check that a string value is a valid [MonthDay]. */
+    val monthDay: JSONExpect.() -> Unit = {
+        try {
+            MonthDay.parse(nodeAsString)
+        }
+        catch (e: Exception) {
+            error("JSON string is not a MonthDay - \"$node\"")
         }
     }
 
