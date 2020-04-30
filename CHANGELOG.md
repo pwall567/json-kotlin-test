@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.6-SNAPSHOT] - 2020-04-30
+### Changed
+- `JSONExpect`: added `propertyPresent`, `nonNull`
+- `JSONExpect`: added `localTime`, `monthDay`
+
 ## [0.5] - 2020-04-23
 ### Changed
 - Removed dependency on `json-kotlin`

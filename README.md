@@ -67,6 +67,15 @@ In some cases, a `null` value in an object may be serialized as a property with 
 cases the property may be omitted.
 Both forms are equivalent, and the `propertyAbsentOrNull` function tests for either case.
 
+### `propertyPresent`
+
+This is used to confirm that a property with the specified name is present in the current context, but does not check
+the content.
+
+### `nonNull`
+
+This is used to confirm that a value is non-null, but does not check the content.
+
 ### `count`
 
 This specifies the expected count of members of an array or object.
@@ -151,17 +160,19 @@ Again, starting from version 0.4, if you wish to check that a string contains a 
 ```kotlin
     property("field1", localDate)
     property("field2", localDateTime)
-    property("field3", offsetDateTime)
-    property("field4", offsetTime)
-    property("field5", yearMonth)
-    property("field6", year)
-    property("field7", period)
-    property("field8", duration)
+    property("field3", localTime) // version 0.6 onwards
+    property("field4", offsetDateTime)
+    property("field5", offsetTime)
+    property("field6", yearMonth)
+    property("field7", monthDay) // version 0.6 onwards
+    property("field8", year)
+    property("field9", period)
+    property("field10", duration)
 ```
 
 ## Dependency Specification
 
-The latest version of the library is 0.5, and it may be obtained from the Maven Central repository.
+The latest version of the library is 0.6, and it may be obtained from the Maven Central repository.
 (The following dependency declarations assume that the library will be included for test purposes; this is
 expected to be its principal use.)
 
@@ -170,19 +181,19 @@ expected to be its principal use.)
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-test</artifactId>
-      <version>0.5</version>
+      <version>0.6</version>
       <scope>test</scope>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    testImplementation 'net.pwall.json:json-kotlin-test:0.5'
+    testImplementation 'net.pwall.json:json-kotlin-test:0.6'
 ```
 ### Gradle (kts)
 ```kotlin
-    testImplementation("net.pwall.json:json-kotlin-test:0.5")
+    testImplementation("net.pwall.json:json-kotlin-test:0.6")
 ```
 
 Peter Wall
 
-2020-04-23
+2020-04-30
