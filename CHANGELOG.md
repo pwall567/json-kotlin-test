@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [0.6-SNAPSHOT] - 2020-04-30
+## [0.6] - 2020-04-30
 ### Changed
 - `JSONExpect`: added `propertyPresent`, `nonNull`
 - `JSONExpect`: added `localTime`, `monthDay`
