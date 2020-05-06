@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.7] - Unreleased
+### Changed
+- `JSONExpect`: added new tests `string`, `integer`, `longInteger`, `decimal`, `boolean`
+
 ## [0.6] - 2020-04-30
 ### Changed
 - `JSONExpect`: added `propertyPresent`, `nonNull`

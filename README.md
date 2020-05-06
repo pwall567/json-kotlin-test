@@ -170,6 +170,17 @@ Again, starting from version 0.4, if you wish to check that a string contains a 
     property("field10", duration)
 ```
 
+### Check for data type
+
+Added to version 0.7 - the ability to check that a value is of a particular type with specifying the contents:
+```kotlin
+    property("id", integer)
+    property("name", string)
+    property("count", longInteger)
+    property("amount", decimal)
+    property("active", boolean)
+```
+
 ## Dependency Specification
 
 The latest version of the library is 0.6, and it may be obtained from the Maven Central repository.

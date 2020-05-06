@@ -1306,6 +1306,261 @@ class JSONExpectTest {
         expect("[0]: Can't perform test using collection of class kotlin.Char") { exception.message }
     }
 
+    @Test fun `should test that value is a string`() {
+        val json = "\"I am a string\""
+        expectJSON(json) {
+            value(string)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that value is a string`() {
+        val json = "12345"
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(string)
+            }
+        }
+        expect("JSON type doesn't match - Expected string, was integer") { exception.message }
+    }
+
+    @Test fun `should test that property is a string`() {
+        val json = """{"abc":"I am a string"}"""
+        expectJSON(json) {
+            property("abc", string)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that property is a string`() {
+        val json = """{"abc":12345}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", string)
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected string, was integer") { exception.message }
+    }
+
+    @Test fun `should test that array item is a string`() {
+        val json = """["I am a string"]"""
+        expectJSON(json) {
+            item(0, string)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that array item is a string`() {
+        val json = """[12345]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, string)
+            }
+        }
+        expect("[0]: JSON type doesn't match - Expected string, was integer") { exception.message }
+    }
+
+    @Test fun `should test that value is an integer`() {
+        val json = "12345"
+        expectJSON(json) {
+            value(integer)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that value is an integer`() {
+        val json = "\"I am a string\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(integer)
+            }
+        }
+        expect("JSON type doesn't match - Expected integer, was string") { exception.message }
+    }
+
+    @Test fun `should test that property is an integer`() {
+        val json = """{"abc":12345}"""
+        expectJSON(json) {
+            property("abc", integer)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that property is an integer`() {
+        val json = """{"abc":"I am a string"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", integer)
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected integer, was string") { exception.message }
+    }
+
+    @Test fun `should test that array item is an integer`() {
+        val json = """[12345]"""
+        expectJSON(json) {
+            item(0, integer)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that array item is an integer`() {
+        val json = """["I am a string"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, integer)
+            }
+        }
+        expect("[0]: JSON type doesn't match - Expected integer, was string") { exception.message }
+    }
+
+    @Test fun `should test that value is a long integer`() {
+        val json = "123456789123456789"
+        expectJSON(json) {
+            value(longInteger)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that value is a long integer`() {
+        val json = "\"I am a string\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(longInteger)
+            }
+        }
+        expect("JSON type doesn't match - Expected long integer, was string") { exception.message }
+    }
+
+    @Test fun `should test that property is a long integer`() {
+        val json = """{"abc":123456789123456789}"""
+        expectJSON(json) {
+            property("abc", longInteger)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that property is a long integer`() {
+        val json = """{"abc":"I am a string"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", longInteger)
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected long integer, was string") { exception.message }
+    }
+
+    @Test fun `should test that array item is a long integer`() {
+        val json = """[123456789123456789]"""
+        expectJSON(json) {
+            item(0, longInteger)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that array item is a long integer`() {
+        val json = """["I am a string"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, longInteger)
+            }
+        }
+        expect("[0]: JSON type doesn't match - Expected long integer, was string") { exception.message }
+    }
+
+    @Test fun `should test that value is a decimal`() {
+        val json = "0.5"
+        expectJSON(json) {
+            value(decimal)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that value is a decimal`() {
+        val json = "\"I am a string\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(decimal)
+            }
+        }
+        expect("JSON type doesn't match - Expected decimal, was string") { exception.message }
+    }
+
+    @Test fun `should test that property is a decimal`() {
+        val json = """{"abc":0.5}"""
+        expectJSON(json) {
+            property("abc", decimal)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that property is a decimal`() {
+        val json = """{"abc":"I am a string"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", decimal)
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected decimal, was string") { exception.message }
+    }
+
+    @Test fun `should test that array item is a decimal`() {
+        val json = """[0.5]"""
+        expectJSON(json) {
+            item(0, decimal)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that array item is a decimal`() {
+        val json = """["I am a string"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, decimal)
+            }
+        }
+        expect("[0]: JSON type doesn't match - Expected decimal, was string") { exception.message }
+    }
+
+    @Test fun `should test that value is a boolean`() {
+        val json = "true"
+        expectJSON(json) {
+            value(boolean)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that value is a boolean`() {
+        val json = "\"I am a string\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(boolean)
+            }
+        }
+        expect("JSON type doesn't match - Expected boolean, was string") { exception.message }
+    }
+
+    @Test fun `should test that property is a boolean`() {
+        val json = """{"abc":true}"""
+        expectJSON(json) {
+            property("abc", boolean)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that property is a boolean`() {
+        val json = """{"abc":"I am a string"}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc", boolean)
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected boolean, was string") { exception.message }
+    }
+
+    @Test fun `should test that array item is a boolean`() {
+        val json = """[true]"""
+        expectJSON(json) {
+            item(0, boolean)
+        }
+    }
+
+    @Test fun `should fail on incorrect test that array item is a boolean`() {
+        val json = """["I am a string"]"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                item(0, boolean)
+            }
+        }
+        expect("[0]: JSON type doesn't match - Expected boolean, was string") { exception.message }
+    }
+
     @Test fun `should test string value as UUID`() {
         val json = "\"f347ab96-7f62-11ea-ba4e-27278a06d491\""
         expectJSON(json) {

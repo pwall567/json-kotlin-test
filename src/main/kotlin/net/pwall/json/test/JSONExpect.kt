@@ -704,6 +704,36 @@ class JSONExpect private constructor(
             error("JSON item is null")
     }
 
+    /** Check that a value is a string. */
+    val string: JSONExpect.() -> Unit = {
+        if (node !is String)
+            errorOnType("string")
+    }
+
+    /** Check that a value is an integer. */
+    val integer: JSONExpect.() -> Unit = {
+        if (node !is Int)
+            errorOnType("integer")
+    }
+
+    /** Check that a value is a long integer. */
+    val longInteger: JSONExpect.() -> Unit = {
+        if (node !is Long)
+            errorOnType("long integer")
+    }
+
+    /** Check that a value is a decimal. */
+    val decimal: JSONExpect.() -> Unit = {
+        if (node !is BigDecimal)
+            errorOnType("decimal")
+    }
+
+    /** Check that a value is a boolean. */
+    val boolean: JSONExpect.() -> Unit = {
+        if (node !is Boolean)
+            errorOnType("boolean")
+    }
+
     /** Check that a string value is a valid [UUID]. */
     val uuid: JSONExpect.() -> Unit = {
         try {
