@@ -73,11 +73,20 @@ class JSONExpect private constructor(
 
     /** The context node as [Long]. */
     val nodeAsLong: Long
-        get() = if (node is Long) node else errorOnType("long integer")
+        get() = when (node) {
+            is Long -> node
+            is Int -> node.toLong()
+            else -> errorOnType("long integer")
+        }
 
     /** The context node as [BigDecimal]. */
     val nodeAsDecimal: BigDecimal
-        get() = if (node is BigDecimal) node else errorOnType("decimal")
+        get() = when (node) {
+            is BigDecimal -> node
+            is Long -> BigDecimal(node)
+            is Int -> BigDecimal(node)
+            else -> errorOnType("decimal")
+        }
 
     /** The context node as [Boolean]. */
     val nodeAsBoolean: Boolean
@@ -116,7 +125,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: BigDecimal) {
-        if (nodeAsDecimal != expected)
+        if (nodeAsDecimal.compareTo(expected) != 0)
             errorOnValue(expected, node)
     }
 
@@ -194,27 +203,19 @@ class JSONExpect private constructor(
     fun <T: Comparable<T>> valueInRange(expected: ClosedRange<T>, itemClass: KClass<*>) {
         when (itemClass) {
             Int::class -> {
-                if (node !is Int)
-                    errorOnType("integer")
-                if (node as T !in expected)
+                if (nodeAsInt as T !in expected)
                     errorInRange(node)
             }
             Long::class -> {
-                if (node !is Long)
-                    errorOnType("long integer")
-                if (node as T !in expected)
+                if (nodeAsLong as T !in expected)
                     errorInRange(node)
             }
             BigDecimal::class -> {
-                if (node !is BigDecimal)
-                    errorOnType("decimal")
-                if (node as T !in expected)
+                if (nodeAsDecimal as T !in expected)
                     errorInRange(node)
             }
             String::class -> {
-                if (node !is String)
-                    errorOnType("string")
-                if (node as T !in expected)
+                if (nodeAsString as T !in expected)
                     errorInRange("\"$node\"")
             }
             else -> error("Can't perform test using range of $itemClass")
@@ -238,33 +239,32 @@ class JSONExpect private constructor(
      * @param   itemClass       the class of the elements of the [Collection]
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
-    fun <T> valueInCollection(expected: Collection<T>, itemClass: KClass<*>) {
-        when (itemClass) {
-            Int::class -> {
-                if (node != null && node !is Int)
-                    errorOnType("integer")
-                if (!expected.contains(node))
-                    errorInCollection(node)
+    @Suppress("UNCHECKED_CAST")
+    fun <T: Any> valueInCollection(expected: Collection<T?>, itemClass: KClass<*>) {
+        if (node == null) {
+            if (!expected.contains(null))
+                errorInCollection(null)
+        }
+        else {
+            when (itemClass) {
+                Int::class -> {
+                    if (!expected.contains(nodeAsInt as T))
+                        errorInCollection(node)
+                }
+                Long::class -> {
+                    if (!expected.contains(nodeAsLong as T))
+                        errorInCollection(node)
+                }
+                BigDecimal::class -> {
+                    if (!expected.contains(nodeAsDecimal as T))
+                        errorInCollection(node)
+                }
+                String::class -> {
+                    if (!expected.contains(nodeAsString as T))
+                        errorInCollection("\"$node\"")
+                }
+                else -> error("Can't perform test using collection of $itemClass")
             }
-            Long::class -> {
-                if (node != null && node !is Long)
-                    errorOnType("long integer")
-                if (!expected.contains(node))
-                    errorInCollection(node)
-            }
-            BigDecimal::class -> {
-                if (node != null && node !is BigDecimal)
-                    errorOnType("decimal")
-                if (!expected.contains(node))
-                    errorInCollection(node)
-            }
-            String::class -> {
-                if (node != null && node !is String)
-                    errorOnType("string")
-                if (!expected.contains(node))
-                    errorInCollection(if (node == null) "null" else "\"$node\"")
-            }
-            else -> error("Can't perform test using collection of $itemClass")
         }
     }
 
@@ -425,7 +425,7 @@ class JSONExpect private constructor(
      * @param   itemClass       the class of the elements of the [Collection]
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
-    fun <T> propertyInCollection(name: String, expected: Collection<T>, itemClass: KClass<*>) {
+    fun <T: Any> propertyInCollection(name: String, expected: Collection<T?>, itemClass: KClass<*>) {
         checkName(name).let {
             JSONExpect(getProperty(it), propertyPath(it)).valueInCollection(expected, itemClass)
         }
@@ -592,7 +592,7 @@ class JSONExpect private constructor(
      * @param   itemClass       the class of the elements of the [Collection]
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
-    fun <T> itemInCollection(index: Int, expected: Collection<T>, itemClass: KClass<*>) {
+    fun <T: Any> itemInCollection(index: Int, expected: Collection<T?>, itemClass: KClass<*>) {
         checkIndex(index).let {
             JSONExpect(getItem(it), itemPath(it)).valueInCollection(expected, itemClass)
         }
@@ -718,13 +718,13 @@ class JSONExpect private constructor(
 
     /** Check that a value is a long integer. */
     val longInteger: JSONExpect.() -> Unit = {
-        if (node !is Long)
+        if (!(node is Long || node is Int))
             errorOnType("long integer")
     }
 
     /** Check that a value is a decimal. */
     val decimal: JSONExpect.() -> Unit = {
-        if (node !is BigDecimal)
+        if (!(node is BigDecimal || node is Long || node is Int))
             errorOnType("decimal")
     }
 
@@ -877,6 +877,32 @@ class JSONExpect private constructor(
         nodeAsString.let {
             if (it.length !in expected)
                 error("JSON string length doesn't match - Expected $expected, was ${it.length}")
+        }
+    }
+
+    /**
+     * Check the scale of a decimal value.
+     *
+     * @param   expected        the expected scale
+     * @throws  AssertionError  if the scale is incorrect
+     */
+    fun scale(expected: Int): JSONExpect.() -> Unit = {
+        nodeAsDecimal.let {
+            if (it.scale() != expected)
+                error("JSON decimal scale doesn't match - Expected $expected, was ${it.scale()}")
+        }
+    }
+
+    /**
+     * Check the scale of a decimal value as a range.
+     *
+     * @param   expected        the expected scale as a range
+     * @throws  AssertionError  if the scale is incorrect
+     */
+    fun scale(expected: IntRange): JSONExpect.() -> Unit = {
+        nodeAsDecimal.let {
+            if (it.scale() !in expected)
+                error("JSON decimal scale doesn't match - Expected $expected, was ${it.scale()}")
         }
     }
 

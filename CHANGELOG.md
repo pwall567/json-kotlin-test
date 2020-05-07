@@ -2,9 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [0.7] - Unreleased
+## [Unreleased]
 ### Changed
 - `JSONExpect`: added new tests `string`, `integer`, `longInteger`, `decimal`, `boolean`
+- `JSONExpect`: changed long and decimal tests to allow widening of int or long
+- `JSONExpect`: added decimal scale tests
 
 ## [0.6] - 2020-04-30
 ### Changed
