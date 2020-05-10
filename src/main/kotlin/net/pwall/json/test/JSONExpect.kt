@@ -46,9 +46,7 @@ import net.pwall.json.JSON
 import net.pwall.json.JSONArray
 import net.pwall.json.JSONBoolean
 import net.pwall.json.JSONDecimal
-import net.pwall.json.JSONDouble
 import net.pwall.json.JSONException
-import net.pwall.json.JSONFloat
 import net.pwall.json.JSONInteger
 import net.pwall.json.JSONLong
 import net.pwall.json.JSONObject
@@ -73,11 +71,20 @@ class JSONExpect private constructor(
 
     /** The context node as [Long]. */
     val nodeAsLong: Long
-        get() = if (node is Long) node else errorOnType("long integer")
+        get() = when (node) {
+            is Long -> node
+            is Int -> node.toLong()
+            else -> errorOnType("long integer")
+        }
 
     /** The context node as [BigDecimal]. */
     val nodeAsDecimal: BigDecimal
-        get() = if (node is BigDecimal) node else errorOnType("decimal")
+        get() = when (node) {
+            is BigDecimal -> node
+            is Long -> BigDecimal(node)
+            is Int -> BigDecimal(node)
+            else -> errorOnType("decimal")
+        }
 
     /** The context node as [Boolean]. */
     val nodeAsBoolean: Boolean
@@ -86,6 +93,14 @@ class JSONExpect private constructor(
     /** The context node as [String]. */
     val nodeAsString: String
         get() = if (node is String) node else errorOnType("string")
+
+    /** The context node as [Map]. */
+    val nodeAsObject: Map<*, *>
+        get() = if (node is Map<*, *>) node else errorOnType("object")
+
+    /** The context node as [List]. */
+    val nodeAsArray: List<*>
+        get() = if (node is List<*>) node else errorOnType("array")
 
     /**
      * Check the value as an [Int].
@@ -116,7 +131,7 @@ class JSONExpect private constructor(
      * @throws  AssertionError  if the value is incorrect
      */
     fun value(expected: BigDecimal) {
-        if (nodeAsDecimal != expected)
+        if (nodeAsDecimal.compareTo(expected) != 0)
             errorOnValue(expected, node)
     }
 
@@ -194,27 +209,19 @@ class JSONExpect private constructor(
     fun <T: Comparable<T>> valueInRange(expected: ClosedRange<T>, itemClass: KClass<*>) {
         when (itemClass) {
             Int::class -> {
-                if (node !is Int)
-                    errorOnType("integer")
-                if (node as T !in expected)
+                if (nodeAsInt as T !in expected)
                     errorInRange(node)
             }
             Long::class -> {
-                if (node !is Long)
-                    errorOnType("long integer")
-                if (node as T !in expected)
+                if (nodeAsLong as T !in expected)
                     errorInRange(node)
             }
             BigDecimal::class -> {
-                if (node !is BigDecimal)
-                    errorOnType("decimal")
-                if (node as T !in expected)
+                if (nodeAsDecimal as T !in expected)
                     errorInRange(node)
             }
             String::class -> {
-                if (node !is String)
-                    errorOnType("string")
-                if (node as T !in expected)
+                if (nodeAsString as T !in expected)
                     errorInRange("\"$node\"")
             }
             else -> error("Can't perform test using range of $itemClass")
@@ -238,33 +245,32 @@ class JSONExpect private constructor(
      * @param   itemClass       the class of the elements of the [Collection]
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
-    fun <T> valueInCollection(expected: Collection<T>, itemClass: KClass<*>) {
-        when (itemClass) {
-            Int::class -> {
-                if (node != null && node !is Int)
-                    errorOnType("integer")
-                if (!expected.contains(node))
-                    errorInCollection(node)
+    @Suppress("UNCHECKED_CAST")
+    fun <T: Any> valueInCollection(expected: Collection<T?>, itemClass: KClass<*>) {
+        if (node == null) {
+            if (!expected.contains(null))
+                errorInCollection(null)
+        }
+        else {
+            when (itemClass) {
+                Int::class -> {
+                    if (!expected.contains(nodeAsInt as T))
+                        errorInCollection(node)
+                }
+                Long::class -> {
+                    if (!expected.contains(nodeAsLong as T))
+                        errorInCollection(node)
+                }
+                BigDecimal::class -> {
+                    if (!expected.contains(nodeAsDecimal as T))
+                        errorInCollection(node)
+                }
+                String::class -> {
+                    if (!expected.contains(nodeAsString as T))
+                        errorInCollection("\"$node\"")
+                }
+                else -> error("Can't perform test using collection of $itemClass")
             }
-            Long::class -> {
-                if (node != null && node !is Long)
-                    errorOnType("long integer")
-                if (!expected.contains(node))
-                    errorInCollection(node)
-            }
-            BigDecimal::class -> {
-                if (node != null && node !is BigDecimal)
-                    errorOnType("decimal")
-                if (!expected.contains(node))
-                    errorInCollection(node)
-            }
-            String::class -> {
-                if (node != null && node !is String)
-                    errorOnType("string")
-                if (!expected.contains(node))
-                    errorInCollection(if (node == null) "null" else "\"$node\"")
-            }
-            else -> error("Can't perform test using collection of $itemClass")
         }
     }
 
@@ -425,7 +431,7 @@ class JSONExpect private constructor(
      * @param   itemClass       the class of the elements of the [Collection]
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
-    fun <T> propertyInCollection(name: String, expected: Collection<T>, itemClass: KClass<*>) {
+    fun <T: Any> propertyInCollection(name: String, expected: Collection<T?>, itemClass: KClass<*>) {
         checkName(name).let {
             JSONExpect(getProperty(it), propertyPath(it)).valueInCollection(expected, itemClass)
         }
@@ -592,7 +598,7 @@ class JSONExpect private constructor(
      * @param   itemClass       the class of the elements of the [Collection]
      * @throws  AssertionError  if the value does not match any element of the [Collection]
      */
-    fun <T> itemInCollection(index: Int, expected: Collection<T>, itemClass: KClass<*>) {
+    fun <T: Any> itemInCollection(index: Int, expected: Collection<T?>, itemClass: KClass<*>) {
         checkIndex(index).let {
             JSONExpect(getItem(it), itemPath(it)).valueInCollection(expected, itemClass)
         }
@@ -613,7 +619,7 @@ class JSONExpect private constructor(
      * Select an array item for nested tests.
      *
      * @param   index           the array index
-     * @param   tests           the tests to be performed on the property
+     * @param   tests           the tests to be performed on the item
      * @throws  AssertionError  if thrown by any of the tests
      */
     fun item(index: Int, tests: JSONExpect.() -> Unit) {
@@ -664,9 +670,7 @@ class JSONExpect private constructor(
      */
     fun propertyAbsent(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        if (node !is Map<*, *>)
-            error("Not a JSON object")
-        if (node.containsKey(name))
+        if (nodeAsObject.containsKey(name))
             error("JSON property not absent - $name")
     }
 
@@ -678,9 +682,7 @@ class JSONExpect private constructor(
      */
     fun propertyAbsentOrNull(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        if (node !is Map<*, *>)
-            error("Not a JSON object")
-        if (node[name] != null)
+        if (nodeAsObject[name] != null)
             error("JSON property not absent or null - $name")
     }
 
@@ -692,9 +694,7 @@ class JSONExpect private constructor(
      */
     fun propertyPresent(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        if (node !is Map<*, *>)
-            error("Not a JSON object")
-        if (!node.containsKey(name))
+        if (!nodeAsObject.containsKey(name))
             error("JSON property not present - $name")
     }
 
@@ -702,6 +702,36 @@ class JSONExpect private constructor(
     val nonNull: JSONExpect.() -> Unit = {
         if (node == null)
             error("JSON item is null")
+    }
+
+    /** Check that a value is a string. */
+    val string: JSONExpect.() -> Unit = {
+        if (node !is String)
+            errorOnType("string")
+    }
+
+    /** Check that a value is an integer. */
+    val integer: JSONExpect.() -> Unit = {
+        if (node !is Int)
+            errorOnType("integer")
+    }
+
+    /** Check that a value is a long integer. */
+    val longInteger: JSONExpect.() -> Unit = {
+        if (!(node is Long || node is Int))
+            errorOnType("long integer")
+    }
+
+    /** Check that a value is a decimal. */
+    val decimal: JSONExpect.() -> Unit = {
+        if (!(node is BigDecimal || node is Long || node is Int))
+            errorOnType("decimal")
+    }
+
+    /** Check that a value is a boolean. */
+    val boolean: JSONExpect.() -> Unit = {
+        if (node !is Boolean)
+            errorOnType("boolean")
     }
 
     /** Check that a string value is a valid [UUID]. */
@@ -851,6 +881,32 @@ class JSONExpect private constructor(
     }
 
     /**
+     * Check the scale of a decimal value.
+     *
+     * @param   expected        the expected scale
+     * @throws  AssertionError  if the scale is incorrect
+     */
+    fun scale(expected: Int): JSONExpect.() -> Unit = {
+        nodeAsDecimal.let {
+            if (it.scale() != expected)
+                error("JSON decimal scale doesn't match - Expected $expected, was ${it.scale()}")
+        }
+    }
+
+    /**
+     * Check the scale of a decimal value as a range.
+     *
+     * @param   expected        the expected scale as a range
+     * @throws  AssertionError  if the scale is incorrect
+     */
+    fun scale(expected: IntRange): JSONExpect.() -> Unit = {
+        nodeAsDecimal.let {
+            if (it.scale() !in expected)
+                error("JSON decimal scale doesn't match - Expected $expected, was ${it.scale()}")
+        }
+    }
+
+    /**
      * Report error, including context path.
      *
      * @param   message     the error message
@@ -888,24 +944,21 @@ class JSONExpect private constructor(
     }
 
     private fun checkName(name: String): String =
-            if (name.isNotEmpty()) name else fail("JSON property name must not be empty")
+            if (name.isNotEmpty()) name else error("JSON property name must not be empty")
 
-    private fun checkIndex(index: Int): Int = if (index >= 0) index else fail("JSON array index must not be negative")
+    private fun checkIndex(index: Int): Int =
+            if (index >= 0) index else error("JSON array index must not be negative - $index")
 
-    private fun getProperty(name: String): Any? {
-        if (node !is Map<*, *>)
-            fail("${propertyPath(name)}: Not a JSON object")
-        if (!node.containsKey(name))
-            fail("${propertyPath(name)}: JSON property missing")
-        return node[name]
+    private fun getProperty(name: String): Any? = nodeAsObject.let {
+        if (!it.containsKey(name))
+            error("JSON property missing - $name")
+        it[name]
     }
 
-    private fun getItem(index: Int): Any? {
-        if (node !is List<*>)
-            fail("${itemPath(index)}: Not a JSON array")
-        if (index !in node.indices)
-            fail("${itemPath(index)}: JSON array index out of bounds")
-        return node[index]
+    private fun getItem(index: Int): Any? = nodeAsArray.let {
+        if (index !in it.indices)
+            error("JSON array index out of bounds - $index")
+        it[index]
     }
 
     private fun propertyPath(name: String) = if (path != null) "$path.$name" else name
@@ -937,8 +990,6 @@ class JSONExpect private constructor(
                 is JSONString -> json.get()
                 is JSONInteger -> json.get()
                 is JSONLong -> json.get()
-                is JSONFloat -> json.get()
-                is JSONDouble -> json.get()
                 is JSONDecimal -> json.get()
                 is JSONBoolean -> json.get()
                 is JSONZero -> 0
@@ -947,7 +998,7 @@ class JSONExpect private constructor(
                     for (entry in json.entries)
                         set(entry.key, convertJSONTypes(entry.value))
                 }
-                else -> throw JSONException("Not a JSONValue - ${json::class}")
+                else -> throw JSONException("Not an expected JSONValue - ${json::class}")
             }
         }
 
