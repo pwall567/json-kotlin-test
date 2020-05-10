@@ -445,7 +445,7 @@ class JSONExpectTest {
                 }
             }
         }
-        expect("primes[10]: JSON array index out of bounds") { exception.message }
+        expect("primes: JSON array index out of bounds - 10") { exception.message }
     }
 
     @Test fun `should test count of array items`() {
@@ -500,7 +500,7 @@ class JSONExpectTest {
                 property("ghi", 9)
             }
         }
-        expect("ghi: JSON property missing") { exception.message }
+        expect("JSON property missing - ghi") { exception.message }
     }
 
     @Test fun `should test for property absent`() {
@@ -575,7 +575,7 @@ class JSONExpectTest {
                 property("ghi", nonNull)
             }
         }
-        expect("ghi: JSON property missing") { exception.message }
+        expect("JSON property missing - ghi") { exception.message }
     }
 
     @Test fun `should fail on incorrect test for property non-null 2`() {
@@ -669,7 +669,7 @@ class JSONExpectTest {
                 }
             }
         }
-        expect("outer.other: JSON property missing") { exception.message }
+        expect("outer: JSON property missing - other") { exception.message }
     }
 
     @Test fun `should fail on incorrect test for nested property non-null 2`() {
@@ -2683,6 +2683,52 @@ class JSONExpectTest {
             }
         }
         expect("abc: JSON type doesn't match - Expected string, was integer") { exception.message }
+    }
+
+    @Test fun `should correctly access nested object node`() {
+        val json = """{"abc":{"xyz":0}}"""
+        expectJSON(json) {
+            property("abc") {
+                if (nodeAsObject.size != 1)
+                    error("Should not happen")
+            }
+        }
+    }
+
+    @Test fun `should fail on incorrect access to nested object node`() {
+        val json = """{"abc":123}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc") {
+                    if (nodeAsObject.size != 1)
+                        error("Should not happen")
+                }
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected object, was integer") { exception.message }
+    }
+
+    @Test fun `should correctly access nested array node`() {
+        val json = """{"abc":[0]}"""
+        expectJSON(json) {
+            property("abc") {
+                if (nodeAsArray.size != 1)
+                    error("Should not happen")
+            }
+        }
+    }
+
+    @Test fun `should fail on incorrect access to nested array node`() {
+        val json = """{"abc":123}"""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                property("abc") {
+                    if (nodeAsArray.size != 1)
+                        error("Should not happen")
+                }
+            }
+        }
+        expect("abc: JSON type doesn't match - Expected array, was integer") { exception.message }
     }
 
     @Test fun `should test integer value as long`() {

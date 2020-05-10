@@ -46,9 +46,7 @@ import net.pwall.json.JSON
 import net.pwall.json.JSONArray
 import net.pwall.json.JSONBoolean
 import net.pwall.json.JSONDecimal
-import net.pwall.json.JSONDouble
 import net.pwall.json.JSONException
-import net.pwall.json.JSONFloat
 import net.pwall.json.JSONInteger
 import net.pwall.json.JSONLong
 import net.pwall.json.JSONObject
@@ -95,6 +93,14 @@ class JSONExpect private constructor(
     /** The context node as [String]. */
     val nodeAsString: String
         get() = if (node is String) node else errorOnType("string")
+
+    /** The context node as [Map]. */
+    val nodeAsObject: Map<*, *>
+        get() = if (node is Map<*, *>) node else errorOnType("object")
+
+    /** The context node as [List]. */
+    val nodeAsArray: List<*>
+        get() = if (node is List<*>) node else errorOnType("array")
 
     /**
      * Check the value as an [Int].
@@ -613,7 +619,7 @@ class JSONExpect private constructor(
      * Select an array item for nested tests.
      *
      * @param   index           the array index
-     * @param   tests           the tests to be performed on the property
+     * @param   tests           the tests to be performed on the item
      * @throws  AssertionError  if thrown by any of the tests
      */
     fun item(index: Int, tests: JSONExpect.() -> Unit) {
@@ -664,9 +670,7 @@ class JSONExpect private constructor(
      */
     fun propertyAbsent(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        if (node !is Map<*, *>)
-            error("Not a JSON object")
-        if (node.containsKey(name))
+        if (nodeAsObject.containsKey(name))
             error("JSON property not absent - $name")
     }
 
@@ -678,9 +682,7 @@ class JSONExpect private constructor(
      */
     fun propertyAbsentOrNull(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        if (node !is Map<*, *>)
-            error("Not a JSON object")
-        if (node[name] != null)
+        if (nodeAsObject[name] != null)
             error("JSON property not absent or null - $name")
     }
 
@@ -692,9 +694,7 @@ class JSONExpect private constructor(
      */
     fun propertyPresent(name: String) {
         require(name.isNotEmpty()) { "JSON property name must not be empty" }
-        if (node !is Map<*, *>)
-            error("Not a JSON object")
-        if (!node.containsKey(name))
+        if (!nodeAsObject.containsKey(name))
             error("JSON property not present - $name")
     }
 
@@ -944,24 +944,21 @@ class JSONExpect private constructor(
     }
 
     private fun checkName(name: String): String =
-            if (name.isNotEmpty()) name else fail("JSON property name must not be empty")
+            if (name.isNotEmpty()) name else error("JSON property name must not be empty")
 
-    private fun checkIndex(index: Int): Int = if (index >= 0) index else fail("JSON array index must not be negative")
+    private fun checkIndex(index: Int): Int =
+            if (index >= 0) index else error("JSON array index must not be negative - $index")
 
-    private fun getProperty(name: String): Any? {
-        if (node !is Map<*, *>)
-            fail("${propertyPath(name)}: Not a JSON object")
-        if (!node.containsKey(name))
-            fail("${propertyPath(name)}: JSON property missing")
-        return node[name]
+    private fun getProperty(name: String): Any? = nodeAsObject.let {
+        if (!it.containsKey(name))
+            error("JSON property missing - $name")
+        it[name]
     }
 
-    private fun getItem(index: Int): Any? {
-        if (node !is List<*>)
-            fail("${itemPath(index)}: Not a JSON array")
-        if (index !in node.indices)
-            fail("${itemPath(index)}: JSON array index out of bounds")
-        return node[index]
+    private fun getItem(index: Int): Any? = nodeAsArray.let {
+        if (index !in it.indices)
+            error("JSON array index out of bounds - $index")
+        it[index]
     }
 
     private fun propertyPath(name: String) = if (path != null) "$path.$name" else name
@@ -993,8 +990,6 @@ class JSONExpect private constructor(
                 is JSONString -> json.get()
                 is JSONInteger -> json.get()
                 is JSONLong -> json.get()
-                is JSONFloat -> json.get()
-                is JSONDouble -> json.get()
                 is JSONDecimal -> json.get()
                 is JSONBoolean -> json.get()
                 is JSONZero -> 0
@@ -1003,7 +998,7 @@ class JSONExpect private constructor(
                     for (entry in json.entries)
                         set(entry.key, convertJSONTypes(entry.value))
                 }
-                else -> throw JSONException("Not a JSONValue - ${json::class}")
+                else -> throw JSONException("Not an expected JSONValue - ${json::class}")
             }
         }
 

@@ -2,12 +2,22 @@
 
 Library for testing Kotlin JSON applications
 
-## Background
-
 This library provides a convenient way of testing applications that produce JSON results.
 It uses a Kotlin DSL to describe the expected JSON values, and produces detailed error messages in the case of failure.
 
+## Contents
+
+- [Quick Start](#quick-start)
+- [User Guide](#user-guide)
+- [Reference](#reference)
+- [Dependency Specification](#dependency-specification)
+
+
+
+
 ## Quick Start
+
+### Example
 
 In a test class:
 ```kotlin
@@ -31,67 +41,146 @@ In a test class:
     }
 ```
 
-## More Detail
+### The Problem
 
-Perhaps the most complex part of `json-kotlin-test` is the import statement:
+Many Kotlin applications return their result in the form of a JSON object, or in some cases, as an array of JSON
+objects.
+When we attempt to test these applications, we run into a simple problem - there may be many valid JSON representations
+of the same object.
+The properties of a JSON object do not have a pre-determined order, and given a valid set of properties, any sequence of
+those properties is equally valid.
+
+Also, the JSON specification allows for whitespace to be added at many points in the JSON string, without affecting the
+meaning of the content.
+
+All of this means that it is not possible to test the results of a function returning JSON by simply performing a string
+comparison on the output.
+We need a means of checking the data content of the JSON, regardless of the formatting.
+
+Many developers avoid the problem by deserializing the JSON into the internal form of the object for comparison, but
+that is not always a useful option.
+And there are libraries that will check an arbitrary JSON string, but they are mostly written in and for Java, and they
+do not take advantage of the capabilities of Kotlin.
+
+### The Solution
+
+The `json-kotlin-test` library allows the expected content of a JSON object to be described in a simple, intuitive form,
+allowing functions returning JSON to be tested easily.
+
+
+
+
+
+
+
+
+
+## User Guide
+
+First, some terminology:
+- a JSON **object** is the form of JSON structure enclosed in curly braces (` { } `) and containing a set of name-value
+pairs
+- these pairs are called **properties**, and each has a property name,  and a value which may be a primitive value or a
+nested object or array
+- a JSON **array** is an ordered collection of values (possibly nested objects or arrays) enclosed in square brackets
+(` [ ] `)
+- an **array item** is a member of an array
+- a JSON **value** is any of the possible JSON data types: a string, a number, a boolean, the value "null" or a nested
+object or array
+
+A function or service returning a JSON result will usually return an object or an array of objects, but according to the
+JSON specification the string representation of any JSON value is a valid JSON string.
+The `json-kotlin-test` library provides facilities for testing all forms of JSON results.
+
+### Invoking the Tests
+
+The set of tests on a JSON string is enclosed in a call to the [`expectJSON`](#expectjson) function.
+This parses the JSON into an internal form and then performs the tests in the supplied lambda.
 ```kotlin
-import net.pwall.json.test.JSONExpect.Companion.expectJSON
+    expectJSON(stringToBeTested) {
+        // tests...
+    }
 ```
 
-With that in place, the rest is easy!
-In a test, the `expectJSON` function takes two parameters: the JSON in string form, and lambda which can contain a
-number of tests.
-If any of the tests fails, an `AssertionError` is thrown, with a detailed message describing the problem.
+If any of the tests fail an `AssertionError` will be thrown with a detailed error message, usually including expected
+and actual values.
 
-### `property`
+### Testing JSON Properties
 
-This function is used when the JSON is an object, and it selects a named property in that object.
-There are two forms of the function; one which takes a value to be compared to the value in the JSON, and a second which
-takes a lambda containing tests to be applied to members of the property.
-Both of these forms are illustrated in the example above.
+The [`property`](#property) function declares a test (or a group of tests) to be performed on a property of an object.
+There are several forms of the `property` function; they all take a property name (`String`) as the first parameter, and
+an expected value or a lambda as the second.
 
-### `item`
+Some examples:
+```kotlin
+        property("name", "William")
+        property("id", 12345678)
+        property("open", true)
+        property("details") {
+            // tests on nested object or array
+        }
+```
 
-This is used when the JSON is an array, and it selects an item from the array by index.
-As with `property`, there are two forms of the function, both illustrated above.
+### Testing Array Items
 
-### `propertyAbsent`
+The [`item`](#item) function declares a test (or a group of tests) to be performed on a item of an array.
+As with `property`, there are several forms of the `item` function, each taking an index (`Int`) as the first parameter,
+and an expected value or a lambda as the second.
 
-This is used to confirm that no property with the specified name is present in the current context.
-It can often be simpler to specify the count (see below) of expected properties rather than enumerating the properties
-expected to be missing.
+Some examples:
+```kotlin
+        index(0, "bear")
+        index(27, -1)
+        index(1, true)
+        index(4) {
+            // tests on nested object or array
+        }
+```
 
-### `propertyAbsentOrNull`
+### Testing Primitive JSON Values
 
-In some cases, a `null` value in an object may be serialized as a property with the keyword value `"null"`, and in other
-cases the property may be omitted.
-Both forms are equivalent, and the `propertyAbsentOrNull` function tests for either case.
+In rare cases a JSON string consists of a primitive value (string, number, boolean or `null`).
+The [`value`](#value) function allows tests to be applied to the single primitive value, and it takes a single
+parameter, the expected value or lambda.
 
-### `propertyPresent`
+Some examples:
+```kotlin
+        value("success")
+        value(0)
+        value(false)
+        value(null)
+```
 
-This is used to confirm that a property with the specified name is present in the current context, but does not check
-the content.
+### Named Tests
 
-### `nonNull`
+The lambda parameter of the `property`, `item` or `value` tests normally takes the form of a set of tests applied to a
+nested object or array, but it can also specify a named lambda, as in the following examples:
+```kotlin
+        property("account", integer)
+        item(0, string)
+        property("id", uuid)
+        property("created", offsetDateTime)
+```
 
-This is used to confirm that a value is non-null, but does not check the content.
-
-### `count`
-
-This specifies the expected count of members of an array or object.
-The expected count may be specified as an integer value or an `IntRange`.
-
-### `value`
-
-This is used when the JSON is just a simple value, e.g. a string, a number or a boolean.
-It specifies the expected value to be checked against that JSON value.
-
-## Important Notes
+These functions test that a property or item meets a particular requirement, without specifying the exact value.
+See the [Reference](#reference) section for a full list of these [General Test Lambdas](#general-test-lambdas).
 
 ### Floating Point
 
-All floating point numbers in the JSON (numbers with a decimal point or using scientific &ldquo;e&rdquo; notation) are
-converted to `BigDecimal`, so comparisons must also use that class, e.g. `property("price":, BigDecimal("9.99"))`.
+Floating point numbers are those with a decimal point, or using the scientific notation (e.g. 1.5e20).
+Many decimal floating point numbers can not be represented with complete accuracy in a binary floating point system, so
+the `json-kotlin-test` library converts all such numbers to `BigDecimal`.
+This means that tests on floating point numbers must use `BigDecimal`, or `ClosedRange<BigDecimal>`, or
+`Collection<BigDecimal>`.
+
+If a comparison using a `BigDecimal` is performed against an `Int` or a `Long`, the value will be "widened" to
+`BigDecimal` before the test is performed.
+
+One unusual feature of the `BigDecimal` class is that the `equals` comparison requires that both the value and the scale
+of the number must be equal, but this library uses `compareTo` to compare the values regardless of scale.
+If it is important to confirm that a certain number of decimal digits are present (for example, in a money value), the
+[`scale`](#scale) function may be used to test the number of digits after the decimal point.
+An `Int` or a `Long` will always be considered as having zero decimal places.
 
 ### Custom Deserialization
 
@@ -104,9 +193,25 @@ Custom name annotations, and even the conversion of dates from strings to `Local
 Checking a value for `null`, e.g. `property("note", null)` will check that the named property **is present** in the JSON
 string and has the value `null`.
 
+In some cases, the fact that a property is not present in the JSON may be taken as being equivalent to the property
+being present with a `null` value.
+If it is important to distinguish between a `null` property and an omitted property, there are functions which test
+specifically for the presence or absence of a property:
+
+To test that a property...                   | Use
+-------------------------------------------- | ------------------------------
+is present and is not null                   | `property("name", nonNull)`
+is present and is null                       | `property("name", null)`
+is present whether null or not               | [`propertyPresent("name")`](#propertypresent)
+is not present                               | [`propertyAbsent("name")`](#propertyabsent)
+is not present, but if it is it must be null | [`propertyAbsentOrNull("name")`](#propertyabsentornull)
+
+Instead of checking all of the properties that are expected not to be present, it may often be simpler to use the
+[`count`](#count) function to check the number of properties that **are** present.
+
 ### Check for Member of Collection
 
-Starting with version 0.3 of the library, you can check a value as being a member of a `Collection`.
+You can check a value as being a member of a `Collection`.
 For example:
 ```kotlin
     property("quality", setOf("good", "bad"))
@@ -118,8 +223,7 @@ The `Collection` must be of the appropriate type for the value being checked, an
 
 ### Check for Value in Range
 
-Again starting with version 0.3 of the library, you can check a value as being included in a range (`IntRange`,
-`LongRange` or `ClosedRange`).
+You can also check a value as being included in a range (`IntRange`, `LongRange` or `ClosedRange`).
 For example:
 ```kotlin
     property("number", 1000..9999)
@@ -130,9 +234,9 @@ As with `Collection`, the range must be of the appropriate type, and each of the
 
 ### Check for String Length
 
-From version 0.4 onwards, the `length` function is available to check the length of a string.
-If, for example, you expect a string to contain between 5 and 20 characters, but you don't need to check the contents,
-you can specify:
+The [`length`](#length) function is available to check the length of a string.
+If, for example, you expect a string to contain between 5 and 20 characters, but you don't need to check the exact
+contents, you can specify:
 ```kotlin
     property("name", length(5..20))
 ```
@@ -140,50 +244,344 @@ The length may be specified as an integer value or an `IntRange`.
 
 ### Check against `Regex`
 
-Another new feature in version 0.4 is the ability to check a string against a `Regex`, for example:
+It is also possible to check a string against a `Regex`, for example:
 ```kotlin
     property("name", Regex("^[A-Za-z]+$"))
 ```
 
-### Check for UUID
+### Custom Tests
 
-Also starting from version 0.4, if you wish to check that a string contains a UUID, but you are not concerned about the
-content of the UUID, you can specify:
+In any of the tests that take a lambda parameter, the lambda is not restricted to the functions provided by the library;
+the full power of Kotlin is available to create tests of any complexity.
+
+The "receiver" for the lambda is an object describing the current node in the JSON structure, and the value is available
+as a `val` named [`node`](#node-nodeasstring-nodeasint-nodeaslong-nodeasdecimal-nodeasboolean-nodeasobject-nodeasarray).
+The type of `node` is `Any?`, but in practice it will be one of:
+
+- `String`
+- `Int`
+- `Long`
+- `BigDecimal`
+- `Boolean`
+- `List<Any?>`
+- `Map<String, Any?>`
+- `null`
+
+(In the case of `Map` or `List`, the `Any?` will itself be one of the above.)
+
+There are also conversion functions, each of which takes the form of a `val` with a custom accessor.
+These accessors either return the node in the form requested, or throw an `AssertionError` with a detailed error
+message.
+
+Accessor        | Type
+--------------- | -----------
+`nodeAsString`  | `String`
+`nodeAsInt`     | `Int`
+`nodeAsLong`    | `Long`
+`nodeAsDecimal` | `BigDecimal`
+`nodeAsBoolean` | `Boolean`
+`nodeAsArray`   | `List<*>`
+`nodeAsObject`  | `Map<*, *>`
+
+To report errors, the [`error`](#error) function will create an `AssertionError` with the message provided, prepending
+the path information for the current node in the JSON.
+
+Example:
 ```kotlin
-    property("id", uuid)
+    expectJSON(jsonString) {
+        property("abc") {
+            if (nodeAsInt.rem(3) != 0 )
+                error("Value not divisible by 3")
+        }
+    }
 ```
 
-### Check for `java.time.xxx` classes
 
-Again, starting from version 0.4, if you wish to check that a string contains a valid representation of one of the
-`java.time.xxx` classes, but don't care about the actual value, you can specify:
+## Reference
+
+### The `import` Statement
+
+Perhaps the most complex part of `json-kotlin-test` is the import statement:
 ```kotlin
-    property("field1", localDate)
-    property("field2", localDateTime)
-    property("field3", localTime) // version 0.6 onwards
-    property("field4", offsetDateTime)
-    property("field5", offsetTime)
-    property("field6", yearMonth)
-    property("field7", monthDay) // version 0.6 onwards
-    property("field8", year)
-    property("field9", period)
-    property("field10", duration)
+import net.pwall.json.test.JSONExpect.Companion.expectJSON
+```
+If the IDE is configured to include the `json-kotlin-test` library, it will often include the `import` automatically
+when you enter the name of the test function.
+
+### `expectJSON`
+
+The `expectJSON` function introduces the set of tests to be performed on the JSON.
+
+    `expectJSON(String, JSONExpect.() -> Unit)`
+
+It takes two parameters:
+- a `String` containing the JSON to be examined
+- a lambda, specifying the tests to be performed on the JSON
+
+Example:
+```kotlin
+    expectJSON(stringOfJSON) {
+        property("data") {
+            // tests ...
+        }
+    }
 ```
 
-### Check for data type
+### `property`
 
-Added to version 0.7 - the ability to check that a value is of a particular type with specifying the contents:
+Tests the value of a property of an object.
+In all cases, the first parameter is the name of the property; the second parameter varies according to the test being
+performed.
+
+Signature                                 | Usage
+----------------------------------------- | ----------------------------------------------------------------
+`property(String, String?)`               | Check that the property is equal to a `String` or `null`
+`property(String, Int)`                   | Check that the property is equal to an `Int`
+`property(String, Long)`                  | Check that the property is equal to a `Long`
+`property(String, BigDecimal)`            | Check that the property is equal to a `BigDecimal`
+`property(String, Boolean)`               | Check that the property is equal to a `Boolean`
+`property(String, Regex)`                 | Check that the property is a `String` matching the given `Regex`
+`property(String, IntRange)`              | Check that the property is in a given range
+`property(String, LongRange)`             | Check that the property is in a given range
+`property(String, ClosedRange<*>)`        | Check that the property is in a given range
+`property(String, Collection<*>)`         | Check that the property in a given range
+`property(String, JSONExpect.() -> Unit)` | Perform the checks in the given lambda against the property
+
+In the case of a `ClosedRange` or `Collection`, the parameter type must be `Int`, `Long`, `BigDecimal` or `String`,
+although in practice a range of `Int` or `Long` would be more likely to use `IntRange` or `LongRange` respectively.
+
+Only the test for `String` has a signature that allows `null` values; this is to avoid compile-time ambiguity on tests
+against `null`.
+This does not mean that only `String` properties can be tested for `null` - a `null` property in the JSON is typeless
+so a test for `null` would work, regardless of the type that the property would otherwise hold.
+
+The last function signature in the list is the one that specifies a lambda - as is usual in Kotlin, when the last
+parameter is a lambda it is usually written outside the parentheses of the function call.
+This is the pattern followed when the lambda is an inline set of tests to be applied to the property, but this function
+signature is also used for the [general test lambdas](#general-test-lambdas), or the [`length`](#length) or
+[`scale`](#scale) functions.
+
+Examples:
 ```kotlin
-    property("id", integer)
-    property("name", string)
-    property("count", longInteger)
-    property("amount", decimal)
-    property("active", boolean)
+        property("id", 12345)
+        property("name", "William")
+        property("count", 0..9999)
+        property("amount", decimal)
+        property("reference", uuid)
+        property("address", length(1..80))
+        property("code", setOf("AAA", "PQR", "XYZ"))
+        property("details") {
+            // nested tests
+        }
 ```
+
+
+### `item`
+
+Tests the value of an array item.
+In all cases, the first parameter is the index of the array item (must be non-negative).
+The second parameter varies according to the test being performed.
+
+Signature                          | Usage
+---------------------------------- | ----------------------------------------------------------------
+`item(Int, String?)`               | Check that the array item is equal to a `String` or `null`
+`item(Int, Int)`                   | Check that the array item is equal to an `Int`
+`item(Int, Long)`                  | Check that the array item is equal to a `Long`
+`item(Int, BigDecimal)`            | Check that the array item is equal to a `BigDecimal`
+`item(Int, Boolean)`               | Check that the array item is equal to a `Boolean`
+`item(Int, Regex)`                 | Check that the array item is a `String` matching the given `Regex`
+`item(Int, IntRange)`              | Check that the array item is in a given range
+`item(Int, LongRange)`             | Check that the array item is in a given range
+`item(Int, ClosedRange<*>)`        | Check that the array item is in a given range
+`item(Int, Collection<*>)`         | Check that the array item in a given range
+`item(Int, JSONExpect.() -> Unit)` | Perform the checks in the given lambda against the array item
+
+The notes following [`property`](#property) describing the options for the second parameter apply equally to `item`.
+
+Examples:
+```kotlin
+        item(0, 22)
+        item(5, "William")
+        item(7, decimal)
+        item(7, scale(0..2))
+        item(1, uuid)
+        item(0) {
+            // nested tests
+        }
+```
+
+### `value`
+
+This function takes one parameter, which varies according to the test being performed.
+
+Signature                      | Usage
+------------------------------ | ----------------------------------------------------------------
+`value(String?)`               | Check that the value is equal to a `String` or `null`
+`value(Int)`                   | Check that the value is equal to an `Int`
+`value(Long)`                  | Check that the value is equal to a `Long`
+`value(BigDecimal)`            | Check that the value is equal to a `BigDecimal`
+`value(Boolean)`               | Check that the value is equal to a `Boolean`
+`value(Regex)`                 | Check that the value is a `String` matching the given `Regex`
+`value(IntRange)`              | Check that the value is in a given range
+`value(LongRange)`             | Check that the value is in a given range
+`value(ClosedRange<*>)`        | Check that the value is in a given range
+`value(Collection<*>)`         | Check that the value in a given range
+`value(JSONExpect.() -> Unit)` | Perform the checks in the given lambda against the value
+
+The notes following [`property`](#property) describing the options for the second parameter apply equally to the sole
+parameter of `value`.
+
+Examples:
+```kotlin
+        value(0..9999)
+        value(decimal)
+        value(scale(0..2))
+        value(localDate)
+```
+
+### `eachItem`
+
+This applies a test to each item of an array.
+It takes one parameter, a lambda for the test required.
+
+Example:
+```kotlin
+        property("numbers") {
+            eachItem(0..9999)
+        }
+```
+
+### `length`
+
+This is used to check the length of a `String` property, array item or value.
+The parameter may be an `Int` or an `IntRange`.
+
+Examples:
+```kotlin
+        property("name", length(1..40))
+        item(0, length(12))
+```
+
+### `scale`
+
+The scale of a `BigDecimal` may be checked, if it is required that a decimal number have a specific scale.
+If the number is parsed as an `Int` or a `Long`, the scale will be zero.
+The parameter may be an `Int` or an `IntRange`.
+
+Examples:
+```kotlin
+        property("amount", scale(1..2))
+        item(0, scale(0))
+```
+
+### `count`
+
+Tests the count of properties or array items (the length of the array).
+The parameter may be an `Int` or an `IntRange`.
+
+Examples:
+```kotlin
+        property("options") {
+            count(2)
+            item(0, "A")
+            item(1, "B")
+        }
+```
+
+### `propertyAbsent`
+
+Tests that no property with the specified name is present in the object.
+It takes one parameter - the property name (`String`).
+
+Examples:
+```kotlin
+        property("controls") {
+            property("openingDate", localDate)
+            propertyAbsent("closingDate")
+        }
+```
+
+### `propertyAbsentOrNull`
+
+Tests that no property with the specified name is present in the object, or if one is present, that it is `null`.
+It takes one parameter - the property name (`String`).
+
+Examples:
+```kotlin
+        property("controls") {
+            property("openingDate", localDate)
+            propertyAbsentOrNull("closingDate")
+        }
+```
+
+### `propertyPresent`
+
+Tests that a property with the specified name is present in the object, regardless of the value. 
+It takes one parameter - the property name (`String`).
+
+Examples:
+```kotlin
+        property("book") {
+            propertyPresent("author")
+        }
+```
+
+### `node`, `nodeAsString`, `nodeAsInt`, `nodeAsLong`, `nodeAsDecimal`, `nodeAsBoolean`, `nodeAsObject`, `nodeAsArray`
+
+In custom tests the current node can be accessed by one of the following:
+
+`val` name      | Type
+--------------- | ------------
+`node`          | `Any?`
+`nodeAsString`  | `String`
+`nodeAsInt`     | `Int`
+`nodeAsLong`    | `Long`
+`nodeAsDecimal` | `BigDecimal`
+`nodeAsBoolean` | `Boolean`
+`nodeAsObject`  | `Map<*, *>`
+`nodeAsArray`   | `List<*>`
+
+If the node as not of the required type, an `AssertionError` will be thrown.
+
+### `error`
+
+In custom tests the `error` function will output the message given, prepended with the path information for the current
+node.
+It takes one parameter - the message (`String`).
+
+### General Test Lambdas
+
+These may be used with the form of [`property`](#property), [`item`](#item) or [`value`](#value) that takes a lambda
+parameter.
+They are useful when only the general nature of the value is to be tested, and the actual value is not important.
+
+Name             | Function
+---------------- | -----------------------------------------------------------------------------------
+`nonNull`        | Tests that the value is non-null
+`string`         | Tests that the value is a `String`
+`integer`        | Tests that the value is an `Int`
+`longInteger`    | Tests that the value is a `Long`
+`decimal`        | Tests that the value is a `BigDecimal` (a number with an optional decimal fraction)
+`uuid`           | Tests that the value is a `String` containing a valid UUID
+`localDate`      | Tests that the value is a `String` containing a valid `LocalDate`
+`localDateTime`  | Tests that the value is a `String` containing a valid `LocalDateTime`
+`localTime`      | Tests that the value is a `String` containing a valid `LocalTime`
+`offsetDateTime` | Tests that the value is a `String` containing a valid `OffsetDateTime`
+`offsetTime`     | Tests that the value is a `String` containing a valid `OffsetTime`
+`zonedDateTime`  | Tests that the value is a `String` containing a valid `ZonedDateTime`
+`year`           | Tests that the value is a `String` containing a valid `Year`
+`yearMonth`      | Tests that the value is a `String` containing a valid `YearMonth`
+`monthDay`       | Tests that the value is a `String` containing a valid `MonthDay`
+`duration`       | Tests that the value is a `String` containing a valid `Duration`
+`period`         | Tests that the value is a `String` containing a valid `Period`
+
+Consistent with the widening of numbers in the tests against `Long` and `BigDecimal` values, the `longInteger` test
+passes if the value is `Int` or `Long`, and the `decimal` test passes if the value is `Int` or `Long` or `BigDecimal`.
+
 
 ## Dependency Specification
 
-The latest version of the library is 0.6, and it may be obtained from the Maven Central repository.
+The latest version of the library is 0.7, and it may be obtained from the Maven Central repository.
 (The following dependency declarations assume that the library will be included for test purposes; this is
 expected to be its principal use.)
 
@@ -192,19 +590,19 @@ expected to be its principal use.)
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-test</artifactId>
-      <version>0.6</version>
+      <version>0.7</version>
       <scope>test</scope>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    testImplementation 'net.pwall.json:json-kotlin-test:0.6'
+    testImplementation 'net.pwall.json:json-kotlin-test:0.7'
 ```
 ### Gradle (kts)
 ```kotlin
-    testImplementation("net.pwall.json:json-kotlin-test:0.6")
+    testImplementation("net.pwall.json:json-kotlin-test:0.7")
 ```
 
 Peter Wall
 
-2020-04-30
+2020-05-10

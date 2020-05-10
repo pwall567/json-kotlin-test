@@ -2,11 +2,13 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.7] - 2020-05-10
 ### Changed
 - `JSONExpect`: added new tests `string`, `integer`, `longInteger`, `decimal`, `boolean`
 - `JSONExpect`: changed long and decimal tests to allow widening of int or long
 - `JSONExpect`: added decimal scale tests
+- `pom.xml`: updated dependency version of `jsonutil`
+- `README.md`: greatly expanded
 
 ## [0.6] - 2020-04-30
 ### Changed
