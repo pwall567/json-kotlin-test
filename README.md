@@ -311,9 +311,6 @@ when you enter the name of the test function.
 ### `expectJSON`
 
 The `expectJSON` function introduces the set of tests to be performed on the JSON.
-
-    `expectJSON(String, JSONExpect.() -> Unit)`
-
 It takes two parameters:
 - a `String` containing the JSON to be examined
 - a lambda, specifying the tests to be performed on the JSON
