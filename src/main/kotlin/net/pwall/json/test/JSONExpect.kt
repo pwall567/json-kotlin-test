@@ -110,7 +110,7 @@ class JSONExpect private constructor(
      */
     fun value(expected: Int) {
         if (nodeAsInt != expected)
-            errorOnValue(expected, node)
+            errorOnValue(expected)
     }
 
     /**
@@ -121,7 +121,7 @@ class JSONExpect private constructor(
      */
     fun value(expected: Long) {
         if (nodeAsLong != expected)
-            errorOnValue(expected, node)
+            errorOnValue(expected)
     }
 
     /**
@@ -132,7 +132,7 @@ class JSONExpect private constructor(
      */
     fun value(expected: BigDecimal) {
         if (nodeAsDecimal.compareTo(expected) != 0)
-            errorOnValue(expected, node)
+            errorOnValue(expected)
     }
 
     /**
@@ -143,7 +143,7 @@ class JSONExpect private constructor(
      */
     fun value(expected: Boolean) {
         if (nodeAsBoolean != expected)
-            errorOnValue(expected, node)
+            errorOnValue(expected)
     }
 
     /**
@@ -160,7 +160,7 @@ class JSONExpect private constructor(
             }
             else -> {
                 if (nodeAsString != expected)
-                    errorOnValue("\"$expected\"", "\"$node\"")
+                    errorOnValue("\"$expected\"")
             }
         }
     }
@@ -173,7 +173,7 @@ class JSONExpect private constructor(
      */
     fun value(expected: Regex) {
         if (!(expected matches nodeAsString))
-            error("JSON string doesn't match regex - Expected $expected, was \"$node\"")
+            error("JSON string doesn't match regex - Expected $expected, was ${showNode()}")
     }
 
     /**
@@ -184,7 +184,7 @@ class JSONExpect private constructor(
      */
     fun value(expected: IntRange) {
         if (nodeAsInt !in expected)
-            errorOnValue(expected, node)
+            errorOnValue(expected)
     }
 
     /**
@@ -195,7 +195,7 @@ class JSONExpect private constructor(
      */
     fun value(expected: LongRange) {
         if (nodeAsLong !in expected)
-            errorOnValue(expected, node)
+            errorOnValue(expected)
     }
 
     /**
@@ -210,19 +210,19 @@ class JSONExpect private constructor(
         when (itemClass) {
             Int::class -> {
                 if (nodeAsInt as T !in expected)
-                    errorInRange(node)
+                    errorInRange()
             }
             Long::class -> {
                 if (nodeAsLong as T !in expected)
-                    errorInRange(node)
+                    errorInRange()
             }
             BigDecimal::class -> {
                 if (nodeAsDecimal as T !in expected)
-                    errorInRange(node)
+                    errorInRange()
             }
             String::class -> {
                 if (nodeAsString as T !in expected)
-                    errorInRange("\"$node\"")
+                    errorInRange()
             }
             else -> error("Can't perform test using range of $itemClass")
         }
@@ -249,25 +249,25 @@ class JSONExpect private constructor(
     fun <T: Any> valueInCollection(expected: Collection<T?>, itemClass: KClass<*>) {
         if (node == null) {
             if (!expected.contains(null))
-                errorInCollection(null)
+                errorInCollection()
         }
         else {
             when (itemClass) {
                 Int::class -> {
                     if (!expected.contains(nodeAsInt as T))
-                        errorInCollection(node)
+                        errorInCollection()
                 }
                 Long::class -> {
                     if (!expected.contains(nodeAsLong as T))
-                        errorInCollection(node)
+                        errorInCollection()
                 }
                 BigDecimal::class -> {
                     if (!expected.contains(nodeAsDecimal as T))
-                        errorInCollection(node)
+                        errorInCollection()
                 }
                 String::class -> {
                     if (!expected.contains(nodeAsString as T))
-                        errorInCollection("\"$node\"")
+                        errorInCollection()
                 }
                 else -> error("Can't perform test using collection of $itemClass")
             }
@@ -740,7 +740,7 @@ class JSONExpect private constructor(
             UUID.fromString(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a UUID - \"$node\"")
+            error("JSON string is not a UUID - ${showNode()}")
         }
     }
 
@@ -750,7 +750,7 @@ class JSONExpect private constructor(
             LocalDate.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a LocalDate - \"$node\"")
+            error("JSON string is not a LocalDate - ${showNode()}")
         }
     }
 
@@ -760,7 +760,7 @@ class JSONExpect private constructor(
             LocalDateTime.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a LocalDateTime - \"$node\"")
+            error("JSON string is not a LocalDateTime - ${showNode()}")
         }
     }
 
@@ -770,7 +770,7 @@ class JSONExpect private constructor(
             LocalTime.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a LocalTime - \"$node\"")
+            error("JSON string is not a LocalTime - ${showNode()}")
         }
     }
 
@@ -780,7 +780,7 @@ class JSONExpect private constructor(
             OffsetDateTime.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a OffsetDateTime - \"$node\"")
+            error("JSON string is not a OffsetDateTime - ${showNode()}")
         }
     }
 
@@ -790,7 +790,7 @@ class JSONExpect private constructor(
             OffsetTime.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a OffsetTime - \"$node\"")
+            error("JSON string is not a OffsetTime - ${showNode()}")
         }
     }
 
@@ -800,7 +800,7 @@ class JSONExpect private constructor(
             ZonedDateTime.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a ZonedDateTime - \"$node\"")
+            error("JSON string is not a ZonedDateTime - ${showNode()}")
         }
     }
 
@@ -810,7 +810,7 @@ class JSONExpect private constructor(
             YearMonth.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a YearMonth - \"$node\"")
+            error("JSON string is not a YearMonth - ${showNode()}")
         }
     }
 
@@ -820,7 +820,7 @@ class JSONExpect private constructor(
             MonthDay.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a MonthDay - \"$node\"")
+            error("JSON string is not a MonthDay - ${showNode()}")
         }
     }
 
@@ -830,7 +830,7 @@ class JSONExpect private constructor(
             Year.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a Year - \"$node\"")
+            error("JSON string is not a Year - ${showNode()}")
         }
     }
 
@@ -840,7 +840,7 @@ class JSONExpect private constructor(
             Duration.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a Duration - \"$node\"")
+            error("JSON string is not a Duration - ${showNode()}")
         }
     }
 
@@ -850,7 +850,7 @@ class JSONExpect private constructor(
             Period.parse(nodeAsString)
         }
         catch (e: Exception) {
-            error("JSON string is not a Period - \"$node\"")
+            error("JSON string is not a Period - ${showNode()}")
         }
     }
 
@@ -916,8 +916,16 @@ class JSONExpect private constructor(
         fail("$context$message")
     }
 
-    private fun errorOnValue(expected: Any?, actual: Any?): Nothing {
-        error("JSON value doesn't match - Expected $expected, was $actual")
+    fun showNode() = when (node) {
+        null -> "null"
+        is String -> "\"$node\""
+        is List<*> -> "[...]"
+        is Map<*, *> -> "{...}"
+        else -> node.toString()
+    }
+
+    private fun errorOnValue(expected: Any?): Nothing {
+        error("JSON value doesn't match - Expected $expected, was ${showNode()}")
     }
 
     private fun errorOnType(expected: String): Nothing {
@@ -935,12 +943,12 @@ class JSONExpect private constructor(
         error("JSON type doesn't match - Expected $expected, was $type")
     }
 
-    private fun errorInCollection(actual: Any?) {
-        error("JSON value not in collection - $actual")
+    private fun errorInCollection() {
+        error("JSON value not in collection - ${showNode()}")
     }
 
-    private fun errorInRange(actual: Any?) {
-        error("JSON value not in range - $actual")
+    private fun errorInRange() {
+        error("JSON value not in range - ${showNode()}")
     }
 
     private fun checkName(name: String): String =

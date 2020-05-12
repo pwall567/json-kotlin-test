@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `JSONExpect`: added `showNode()`
+
 ## [0.7] - 2020-05-10
 ### Changed
 - `JSONExpect`: added new tests `string`, `integer`, `longInteger`, `decimal`, `boolean`

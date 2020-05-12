@@ -285,13 +285,14 @@ Accessor        | Type
 
 To report errors, the [`error`](#error) function will create an `AssertionError` with the message provided, prepending
 the path information for the current node in the JSON.
+The [`showNode`](#shownode) function can be used to display the actual node value in the error message.
 
 Example:
 ```kotlin
     expectJSON(jsonString) {
         property("abc") {
             if (nodeAsInt.rem(3) != 0 )
-                error("Value not divisible by 3")
+                error("Value not divisible by 3 - ${showNode()}")
         }
     }
 ```
@@ -545,6 +546,11 @@ If the node as not of the required type, an `AssertionError` will be thrown.
 In custom tests the `error` function will output the message given, prepended with the path information for the current
 node.
 It takes one parameter - the message (`String`).
+
+### `showNode`
+
+The `showNode` function may be used to format the node for inclusion in an error message.
+It takes no parameters.
 
 ### General Test Lambdas
 

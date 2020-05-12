@@ -2563,7 +2563,8 @@ class JSONExpectTest {
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
                 property("abc") {
-                    error("Custom error message $path = $node")
+                    if (node !is String)
+                        error("Custom error message $path = ${showNode()}")
                 }
             }
         }
