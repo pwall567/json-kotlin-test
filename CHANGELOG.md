@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ## [Unreleased]
 ### Changed
 - `JSONExpect`: added `showNode()`
+- `JSONExpect`: added `oneOf()` and `test()`
+- split unit tests into multiple classes
 
 ## [0.7] - 2020-05-10
 ### Changed

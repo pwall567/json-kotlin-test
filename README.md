@@ -67,8 +67,26 @@ do not take advantage of the capabilities of Kotlin.
 The `json-kotlin-test` library allows the expected content of a JSON object to be described in a simple, intuitive form,
 allowing functions returning JSON to be tested easily.
 
+In many cases, the expected values will be known precisely, and the basic forms of comparison make a good starting
+point:
+```kotlin
+    property("id", 1234)
+    property("surname", "Walker")
+```
+This checks that the current node is an object with a property named "id" having the value 1234, and another property
+"surname" with the value "Walker".
 
+Nested objects may be checked by:
+```kotlin
+    property("details") {
+        // tests on the nested object
+    }
+```
 
+And array items can similarly be checked, either as primitive values or as nested objects or arrays.
+
+The `json-kotlin-test` library makes testing simple cases easy and clear, and at the same time provides functionality to
+meet very broad and complex testing requirements.
 
 
 
@@ -163,6 +181,10 @@ nested object or array, but it can also specify a named lambda, as in the follow
 ```
 
 These functions test that a property or item meets a particular requirement, without specifying the exact value.
+In the above tests, the property "account" is checked to have an integer value, item 0 of an array contains a string,
+property "id" contains a string formatted as a UUID and property "created" contains a string following the pattern of
+the `OffsetDateTime` class.
+
 See the [Reference](#reference) section for a full list of these [General Test Lambdas](#general-test-lambdas).
 
 ### Floating Point
@@ -247,6 +269,38 @@ The length may be specified as an integer value or an `IntRange`.
 It is also possible to check a string against a `Regex`, for example:
 ```kotlin
     property("name", Regex("^[A-Za-z]+$"))
+```
+
+### Multiple Possibilities
+
+You can also check for a value matching one of a number of possibilities.
+The [`oneOf`](#oneof) function takes any number of lambdas (as `vararg` parameters) and executes them in turn until it
+finds one that matches.
+```kotlin
+    property("elapsedTime") {
+        oneOf(duration, integer)
+    }
+```
+
+To simplify the use of lambdas in the `oneOf` list, the [`test`](#test) function creates a lambda representing any of
+the available types of test:
+```kotlin
+    property("response") {
+        oneOf(test(null), test(setOf("YES", "NO")))
+    }
+```
+
+Of course, the full lambda syntax can be used to describe complex combinations.
+In the following case, the JSON string may be either `{"data":27}` or `{"error":nnn}`, where _nnn_ is a number between
+0 and 999.
+```kotlin
+    expectJSON(json) {
+        oneOf({
+            property("data", 27)
+        },{
+            property("error", 0..999)
+        })
+    }
 ```
 
 ### Custom Tests
@@ -342,7 +396,7 @@ Signature                                 | Usage
 `property(String, IntRange)`              | Check that the property is in a given range
 `property(String, LongRange)`             | Check that the property is in a given range
 `property(String, ClosedRange<*>)`        | Check that the property is in a given range
-`property(String, Collection<*>)`         | Check that the property in a given range
+`property(String, Collection<*>)`         | Check that the property is in a given collection
 `property(String, JSONExpect.() -> Unit)` | Perform the checks in the given lambda against the property
 
 In the case of a `ClosedRange` or `Collection`, the parameter type must be `Int`, `Long`, `BigDecimal` or `String`,
@@ -391,7 +445,7 @@ Signature                          | Usage
 `item(Int, IntRange)`              | Check that the array item is in a given range
 `item(Int, LongRange)`             | Check that the array item is in a given range
 `item(Int, ClosedRange<*>)`        | Check that the array item is in a given range
-`item(Int, Collection<*>)`         | Check that the array item in a given range
+`item(Int, Collection<*>)`         | Check that the array item is in a given collection
 `item(Int, JSONExpect.() -> Unit)` | Perform the checks in the given lambda against the array item
 
 The notes following [`property`](#property) describing the options for the second parameter apply equally to `item`.
@@ -423,7 +477,7 @@ Signature                      | Usage
 `value(IntRange)`              | Check that the value is in a given range
 `value(LongRange)`             | Check that the value is in a given range
 `value(ClosedRange<*>)`        | Check that the value is in a given range
-`value(Collection<*>)`         | Check that the value in a given range
+`value(Collection<*>)`         | Check that the value is in a given collection
 `value(JSONExpect.() -> Unit)` | Perform the checks in the given lambda against the value
 
 The notes following [`property`](#property) describing the options for the second parameter apply equally to the sole
@@ -485,6 +539,45 @@ Examples:
             item(1, "B")
         }
 ```
+
+### `oneOf`
+
+Test each of the parameters in turn, exiting when one of them matches the node successfully.
+It takes a variable number of parameters, each of which is a lambda (the [`test`](#test) function may be used to create
+lambdas for this purpose).
+
+Examples:
+```kotlin
+        property("id") {
+            oneOf(integer, uuid)
+        }
+        property("result") {
+            oneof(test(0..99999), test("ERROR"))
+        }
+```
+
+### `test`
+
+Creates a lambda, principally for use with the [`oneOf`](#oneof) function.
+It takes one parameter, which varies according to the type of test.
+
+Signature                     | Usage
+----------------------------- | -------------------------------------------------------------
+`test(String?)`               | Create a test for value equal to a `String` or `null`
+`test(Int)`                   | Create a test for value equal to an `Int`
+`test(Long)`                  | Create a test for value equal to a `Long`
+`test(BigDecimal)`            | Create a test for value equal to a `BigDecimal`
+`test(Boolean)`               | Create a test for value equal to a `Boolean`
+`test(Regex)`                 | Create a test for value a `String` matching the given `Regex`
+`test(IntRange)`              | Create a test for value in a given range
+`test(LongRange)`             | Create a test for value in a given range
+`test(ClosedRange<*>)`        | Create a test for value in a given range
+`test(Collection<*>)`         | Create a test for value in a given collection
+
+The notes following [`property`](#property) describing the options for the second parameter apply equally to the sole
+parameter of `test`.
+
+For examples see the [`oneOf`](#oneof) function.
 
 ### `propertyAbsent`
 

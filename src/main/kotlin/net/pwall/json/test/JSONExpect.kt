@@ -698,6 +698,123 @@ class JSONExpect private constructor(
             error("JSON property not present - $name")
     }
 
+    /**
+     * Check that the value matches one of a number of tests.
+     *
+     * @param   tests           the tests (as lambdas)
+     * @throws  AssertionError  if all of the tests fail
+     */
+    fun oneOf(vararg tests: JSONExpect.() -> Unit) {
+        for (test in tests) {
+            try {
+                test.invoke(this)
+                return
+            }
+            catch (e: AssertionError) {}
+        }
+        error("No successful test - value is ${showNode()}")
+    }
+
+    /**
+     * Convert an [Int] equality check to a lambda for use in a multiple test check.
+     *
+     * @param   expected    the expected [Int] value
+     * @return              the lambda
+     */
+    fun test(expected: Int): JSONExpect.() -> Unit {
+        return { value(expected) }
+    }
+
+    /**
+     * Convert a [Long] equality check to a lambda for use in a multiple test check.
+     *
+     * @param   expected    the expected [Long] value
+     * @return              the lambda
+     */
+    fun test(expected: Long): JSONExpect.() -> Unit {
+        return { value(expected) }
+    }
+
+    /**
+     * Convert a [BigDecimal] equality check to a lambda for use in a multiple test check.
+     *
+     * @param   expected    the expected [BigDecimal] value
+     * @return              the lambda
+     */
+    fun test(expected: BigDecimal): JSONExpect.() -> Unit {
+        return { value(expected) }
+    }
+
+    /**
+     * Convert a [Boolean] equality check to a lambda for use in a multiple test check.
+     *
+     * @param   expected    the expected [Boolean] value
+     * @return              the lambda
+     */
+    fun test(expected: Boolean): JSONExpect.() -> Unit {
+        return { value(expected) }
+    }
+
+    /**
+     * Convert a [String] or `null` equality check to a lambda for use in a multiple test check.
+     *
+     * @param   expected    the expected [String] value (or `null`)
+     * @return              the lambda
+     */
+    fun test(expected: String?): JSONExpect.() -> Unit {
+        return { value(expected) }
+    }
+
+    /**
+     * Convert a [String] [Regex] check to a lambda for use in a multiple test check.
+     *
+     * @param   expected    the [Regex]
+     * @return              the lambda
+     */
+    fun test(expected: Regex): JSONExpect.() -> Unit {
+        return { value(expected) }
+    }
+
+    /**
+     * Convert an [Int] range check to a lambda for use in a multiple test check.
+     *
+     * @param   expected    the [IntRange]
+     * @return              the lambda
+     */
+    fun test(expected: IntRange): JSONExpect.() -> Unit {
+        return { value(expected) }
+    }
+
+    /**
+     * Convert a [Long] range check to a lambda for use in a multiple test check.
+     *
+     * @param   expected    the [LongRange]
+     * @return              the lambda
+     */
+    fun test(expected: LongRange): JSONExpect.() -> Unit {
+        return { value(expected) }
+    }
+
+    /**
+     * Convert a [ClosedRange] check to a lambda for use in a multiple test check.
+     *
+     * @param   expected    the [ClosedRange]
+     * @return              the lambda
+     */
+    inline fun <reified T: Comparable<T>> test(expected: ClosedRange<T>): JSONExpect.() -> Unit {
+        return { value(expected) }
+    }
+
+    /**
+     * Convert a [Collection] check to a lambda for use in a multiple test check.
+     *
+     * @param   expected    the [Collection]
+     * @return              the lambda
+     */
+    inline fun <reified T: Any> test(expected: Collection<T>): JSONExpect.() -> Unit {
+        return { value(expected) }
+    }
+
     /** Check that a value is non-null. */
     val nonNull: JSONExpect.() -> Unit = {
         if (node == null)
