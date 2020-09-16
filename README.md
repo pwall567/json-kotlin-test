@@ -321,7 +321,7 @@ The type of `node` is `Any?`, but in practice it will be one of:
 - `Map<String, Any?>`
 - `null`
 
-(In the case of `Map` or `List`, the `Any?` will itself be one of the above.)
+(In the case of `Map` or `List`, the type parameter `Any?` will itself be one of the above.)
 
 There are also conversion functions, each of which takes the form of a `val` with a custom accessor.
 These accessors either return the node in the form requested, or throw an `AssertionError` with a detailed error
@@ -345,7 +345,7 @@ Example:
 ```kotlin
     expectJSON(jsonString) {
         property("abc") {
-            if (nodeAsInt.rem(3) != 0 )
+            if (nodeAsInt.rem(3) != 0)
                 error("Value not divisible by 3 - ${showNode()}")
         }
     }
@@ -489,18 +489,6 @@ Examples:
         value(decimal)
         value(scale(0..2))
         value(localDate)
-```
-
-### `eachItem`
-
-This applies a test to each item of an array.
-It takes one parameter, a lambda for the test required.
-
-Example:
-```kotlin
-        property("numbers") {
-            eachItem(0..9999)
-        }
 ```
 
 ### `length`
@@ -677,7 +665,7 @@ passes if the value is `Int` or `Long`, and the `decimal` test passes if the val
 
 ## Dependency Specification
 
-The latest version of the library is 0.7, and it may be obtained from the Maven Central repository.
+The latest version of the library is 0.8, and it may be obtained from the Maven Central repository.
 (The following dependency declarations assume that the library will be included for test purposes; this is
 expected to be its principal use.)
 
@@ -686,19 +674,19 @@ expected to be its principal use.)
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-test</artifactId>
-      <version>0.7</version>
+      <version>0.8</version>
       <scope>test</scope>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    testImplementation 'net.pwall.json:json-kotlin-test:0.7'
+    testImplementation 'net.pwall.json:json-kotlin-test:0.8'
 ```
 ### Gradle (kts)
 ```kotlin
-    testImplementation("net.pwall.json:json-kotlin-test:0.7")
+    testImplementation("net.pwall.json:json-kotlin-test:0.8")
 ```
 
 Peter Wall
 
-2020-05-10
+2020-09-16

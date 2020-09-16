@@ -2,11 +2,12 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.8] - 2020-09-16
 ### Changed
 - `JSONExpect`: added `showNode()`
 - `JSONExpect`: added `oneOf()` and `test()`
 - split unit tests into multiple classes
+- updated to Kotlin 1.4.0
 
 ## [0.7] - 2020-05-10
 ### Changed
