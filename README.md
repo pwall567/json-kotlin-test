@@ -1,5 +1,10 @@
 # json-kotlin-test
 
+[![Build Status](https://travis-ci.org/pwall567/json-kotlin-test.svg?branch=main)](https://travis-ci.org/pwall567/json-kotlin-test)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.4.0&color=blue&logo=kotlin)](https://github.com/JetBrains/kotlin/releases/tag/v1.4.0)
+[![Maven Central](https://img.shields.io/maven-central/v/net.pwall.json/json-kotlin-test?label=Maven%20Central)](https://search.maven.org/search?q=g:%22net.pwall.json%22%20AND%20a:%22json-kotlin-test%22)
+
 Library for testing Kotlin JSON applications
 
 This library provides a convenient way of testing applications that produce JSON results.
@@ -665,7 +670,7 @@ passes if the value is `Int` or `Long`, and the `decimal` test passes if the val
 
 ## Dependency Specification
 
-The latest version of the library is 0.8, and it may be obtained from the Maven Central repository.
+The latest version of the library is 0.9, and it may be obtained from the Maven Central repository.
 (The following dependency declarations assume that the library will be included for test purposes; this is
 expected to be its principal use.)
 
@@ -674,19 +679,19 @@ expected to be its principal use.)
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-test</artifactId>
-      <version>0.8</version>
+      <version>0.9</version>
       <scope>test</scope>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    testImplementation 'net.pwall.json:json-kotlin-test:0.8'
+    testImplementation 'net.pwall.json:json-kotlin-test:0.9'
 ```
 ### Gradle (kts)
 ```kotlin
-    testImplementation("net.pwall.json:json-kotlin-test:0.8")
+    testImplementation("net.pwall.json:json-kotlin-test:0.9")
 ```
 
 Peter Wall
 
-2020-09-16
+2020-11-01

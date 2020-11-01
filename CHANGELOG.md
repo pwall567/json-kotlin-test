@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.9] - 2020-11-01
+### Changed
+- `JSONExpect`: switched to use `toSimpleValue()` from `jsonutil` 4.1
+- `pom.xml`: updated build dependency (Dokka)
+
 ## [0.8] - 2020-09-16
 ### Changed
 - `JSONExpect`: added `showNode()`

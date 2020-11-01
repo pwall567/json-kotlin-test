@@ -43,16 +43,6 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 import net.pwall.json.JSON
-import net.pwall.json.JSONArray
-import net.pwall.json.JSONBoolean
-import net.pwall.json.JSONDecimal
-import net.pwall.json.JSONException
-import net.pwall.json.JSONInteger
-import net.pwall.json.JSONLong
-import net.pwall.json.JSONObject
-import net.pwall.json.JSONString
-import net.pwall.json.JSONValue
-import net.pwall.json.JSONZero
 
 /**
  * Implementation class for `expectJSON()` function.
@@ -1101,30 +1091,12 @@ class JSONExpect private constructor(
          */
         fun expectJSON(json: String, tests: JSONExpect.() -> Unit) {
             val obj = try {
-                convertJSONTypes(JSON.parse(json))
+                JSON.parse(json)?.toSimpleValue()
             }
             catch (e: Exception) {
                 fail("Unable to parse JSON - ${e.message}")
             }
             JSONExpect(obj).tests()
-        }
-
-        private fun convertJSONTypes(json: JSONValue?): Any? {
-            return when (json) {
-                null -> null
-                is JSONString -> json.get()
-                is JSONInteger -> json.get()
-                is JSONLong -> json.get()
-                is JSONDecimal -> json.get()
-                is JSONBoolean -> json.get()
-                is JSONZero -> 0
-                is JSONArray -> List(json.size) { i -> convertJSONTypes(json[i]) }
-                is JSONObject -> LinkedHashMap<String, Any?>(json.size).apply {
-                    for (entry in json.entries)
-                        set(entry.key, convertJSONTypes(entry.value))
-                }
-                else -> throw JSONException("Not an expected JSONValue - ${json::class}")
-            }
         }
 
     }
