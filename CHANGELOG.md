@@ -2,9 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.10] - 2021-04-19
 ### Changed
 - `pom.xml`: updated `surefire` plugin to ensure tests are run in Maven
+- `pom.xml`: bumped dependency
 - `README`: general improvements
 
 ## [0.9] - 2020-11-01
