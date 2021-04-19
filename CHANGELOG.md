@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `pom.xml`: updated `surefire` plugin to ensure tests are run in Maven
+- `README`: general improvements
+
 ## [0.9] - 2020-11-01
 ### Changed
 - `JSONExpect`: switched to use `toSimpleValue()` from `jsonutil` 4.1

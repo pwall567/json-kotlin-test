@@ -5,7 +5,7 @@
 
   <groupId>net.pwall.json</groupId>
   <artifactId>json-kotlin-test</artifactId>
-  <version>0.9</version>
+  <version>0.9.1-SNAPSHOT</version>
   <name>Library for testing Kotlin JSON applications</name>
   <description>Kotlin classes for testing JSON applications.</description>
   <packaging>jar</packaging>
@@ -105,6 +105,20 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M5</version>
+        <configuration>
+          <includes>
+            <include>JSONExpectTest1.class</include>
+            <include>JSONExpectTest2.class</include>
+            <include>JSONExpectTest3.class</include>
+            <include>JSONExpectTest4.class</include>
+            <include>JSONExpectTest5.class</include>
+          </includes>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.jetbrains.dokka</groupId>

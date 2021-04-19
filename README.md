@@ -227,11 +227,11 @@ specifically for the presence or absence of a property:
 
 To test that a property...                   | Use
 -------------------------------------------- | ------------------------------
-is present and is not null                   | `property("name", nonNull)`
-is present and is null                       | `property("name", null)`
-is present whether null or not               | [`propertyPresent("name")`](#propertypresent)
-is not present                               | [`propertyAbsent("name")`](#propertyabsent)
-is not present, but if it is it must be null | [`propertyAbsentOrNull("name")`](#propertyabsentornull)
+...is present and is not null                | `property("name", nonNull)`
+...is present and is null                    | `property("name", null)`
+...is present whether null or not            | [`propertyPresent("name")`](#propertypresent)
+...is not present                            | [`propertyAbsent("name")`](#propertyabsent)
+...is not present, or is present and is null | [`propertyAbsentOrNull("name")`](#propertyabsentornull)
 
 Instead of checking all of the properties that are expected not to be present, it may often be simpler to use the
 [`count`](#count) function to check the number of properties that **are** present.
@@ -390,19 +390,19 @@ Tests the value of a property of an object.
 In all cases, the first parameter is the name of the property; the second parameter varies according to the test being
 performed.
 
-Signature                                 | Usage
+Signature                                 | Check that the property...
 ----------------------------------------- | ----------------------------------------------------------------
-`property(String, String?)`               | Check that the property is equal to a `String` or `null`
-`property(String, Int)`                   | Check that the property is equal to an `Int`
-`property(String, Long)`                  | Check that the property is equal to a `Long`
-`property(String, BigDecimal)`            | Check that the property is equal to a `BigDecimal`
-`property(String, Boolean)`               | Check that the property is equal to a `Boolean`
-`property(String, Regex)`                 | Check that the property is a `String` matching the given `Regex`
-`property(String, IntRange)`              | Check that the property is in a given range
-`property(String, LongRange)`             | Check that the property is in a given range
-`property(String, ClosedRange<*>)`        | Check that the property is in a given range
-`property(String, Collection<*>)`         | Check that the property is in a given collection
-`property(String, JSONExpect.() -> Unit)` | Perform the checks in the given lambda against the property
+`property(String, String?)`               | ...is equal to a `String` or `null`
+`property(String, Int)`                   | ...is equal to an `Int`
+`property(String, Long)`                  | ...is equal to a `Long`
+`property(String, BigDecimal)`            | ...is equal to a `BigDecimal`
+`property(String, Boolean)`               | ...is equal to a `Boolean`
+`property(String, Regex)`                 | ...is a `String` matching the given `Regex`
+`property(String, IntRange)`              | ...is in a given range
+`property(String, LongRange)`             | ...is in a given range
+`property(String, ClosedRange<*>)`        | ...is in a given range
+`property(String, Collection<*>)`         | ...is in a given collection
+`property(String, JSONExpect.() -> Unit)` | ...satisfies the given lambda
 
 In the case of a `ClosedRange` or `Collection`, the parameter type must be `Int`, `Long`, `BigDecimal` or `String`,
 although in practice a range of `Int` or `Long` would be more likely to use `IntRange` or `LongRange` respectively.
@@ -439,19 +439,19 @@ Tests the value of an array item.
 In all cases, the first parameter is the index of the array item (must be non-negative).
 The second parameter varies according to the test being performed.
 
-Signature                          | Usage
+Signature                          | Check that the array item...
 ---------------------------------- | ----------------------------------------------------------------
-`item(Int, String?)`               | Check that the array item is equal to a `String` or `null`
-`item(Int, Int)`                   | Check that the array item is equal to an `Int`
-`item(Int, Long)`                  | Check that the array item is equal to a `Long`
-`item(Int, BigDecimal)`            | Check that the array item is equal to a `BigDecimal`
-`item(Int, Boolean)`               | Check that the array item is equal to a `Boolean`
-`item(Int, Regex)`                 | Check that the array item is a `String` matching the given `Regex`
-`item(Int, IntRange)`              | Check that the array item is in a given range
-`item(Int, LongRange)`             | Check that the array item is in a given range
-`item(Int, ClosedRange<*>)`        | Check that the array item is in a given range
-`item(Int, Collection<*>)`         | Check that the array item is in a given collection
-`item(Int, JSONExpect.() -> Unit)` | Perform the checks in the given lambda against the array item
+`item(Int, String?)`               | ...is equal to a `String` or `null`
+`item(Int, Int)`                   | ...is equal to an `Int`
+`item(Int, Long)`                  | ...is equal to a `Long`
+`item(Int, BigDecimal)`            | ...is equal to a `BigDecimal`
+`item(Int, Boolean)`               | ...is equal to a `Boolean`
+`item(Int, Regex)`                 | ...is a `String` matching the given `Regex`
+`item(Int, IntRange)`              | ...is in a given range
+`item(Int, LongRange)`             | ...is in a given range
+`item(Int, ClosedRange<*>)`        | ...is in a given range
+`item(Int, Collection<*>)`         | ...is in a given collection
+`item(Int, JSONExpect.() -> Unit)` | ...satisfies the given lambda
 
 The notes following [`property`](#property) describing the options for the second parameter apply equally to `item`.
 
@@ -471,19 +471,19 @@ Examples:
 
 This function takes one parameter, which varies according to the test being performed.
 
-Signature                      | Usage
+Signature                      | Check that the value...
 ------------------------------ | ----------------------------------------------------------------
-`value(String?)`               | Check that the value is equal to a `String` or `null`
-`value(Int)`                   | Check that the value is equal to an `Int`
-`value(Long)`                  | Check that the value is equal to a `Long`
-`value(BigDecimal)`            | Check that the value is equal to a `BigDecimal`
-`value(Boolean)`               | Check that the value is equal to a `Boolean`
-`value(Regex)`                 | Check that the value is a `String` matching the given `Regex`
-`value(IntRange)`              | Check that the value is in a given range
-`value(LongRange)`             | Check that the value is in a given range
-`value(ClosedRange<*>)`        | Check that the value is in a given range
-`value(Collection<*>)`         | Check that the value is in a given collection
-`value(JSONExpect.() -> Unit)` | Perform the checks in the given lambda against the value
+`value(String?)`               | ...is equal to a `String` or `null`
+`value(Int)`                   | ...is equal to an `Int`
+`value(Long)`                  | ...is equal to a `Long`
+`value(BigDecimal)`            | ...is equal to a `BigDecimal`
+`value(Boolean)`               | ...is equal to a `Boolean`
+`value(Regex)`                 | ...is a `String` matching the given `Regex`
+`value(IntRange)`              | ...is in a given range
+`value(LongRange)`             | ...is in a given range
+`value(ClosedRange<*>)`        | ...is in a given range
+`value(Collection<*>)`         | ...is in a given collection
+`value(JSONExpect.() -> Unit)` | ...satisfies the given lambda
 
 The notes following [`property`](#property) describing the options for the second parameter apply equally to the sole
 parameter of `value`.
@@ -554,18 +554,18 @@ Examples:
 Creates a lambda, principally for use with the [`oneOf`](#oneof) function.
 It takes one parameter, which varies according to the type of test.
 
-Signature                     | Usage
+Signature                     | Create a test for...
 ----------------------------- | -------------------------------------------------------------
-`test(String?)`               | Create a test for value equal to a `String` or `null`
-`test(Int)`                   | Create a test for value equal to an `Int`
-`test(Long)`                  | Create a test for value equal to a `Long`
-`test(BigDecimal)`            | Create a test for value equal to a `BigDecimal`
-`test(Boolean)`               | Create a test for value equal to a `Boolean`
-`test(Regex)`                 | Create a test for value a `String` matching the given `Regex`
-`test(IntRange)`              | Create a test for value in a given range
-`test(LongRange)`             | Create a test for value in a given range
-`test(ClosedRange<*>)`        | Create a test for value in a given range
-`test(Collection<*>)`         | Create a test for value in a given collection
+`test(String?)`               | ...value equal to a `String` or `null`
+`test(Int)`                   | ...value equal to an `Int`
+`test(Long)`                  | ...value equal to a `Long`
+`test(BigDecimal)`            | ...value equal to a `BigDecimal`
+`test(Boolean)`               | ...value equal to a `Boolean`
+`test(Regex)`                 | ...value a `String` matching the given `Regex`
+`test(IntRange)`              | ...value in a given range
+`test(LongRange)`             | ...value in a given range
+`test(ClosedRange<*>)`        | ...value in a given range
+`test(Collection<*>)`         | ...value in a given collection
 
 The notes following [`property`](#property) describing the options for the second parameter apply equally to the sole
 parameter of `test`.
@@ -644,25 +644,25 @@ These may be used with the form of [`property`](#property), [`item`](#item) or [
 parameter.
 They are useful when only the general nature of the value is to be tested, and the actual value is not important.
 
-Name             | Function
+Name             | Tests that the value is...
 ---------------- | -----------------------------------------------------------------------------------
-`nonNull`        | Tests that the value is non-null
-`string`         | Tests that the value is a `String`
-`integer`        | Tests that the value is an `Int`
-`longInteger`    | Tests that the value is a `Long`
-`decimal`        | Tests that the value is a `BigDecimal` (a number with an optional decimal fraction)
-`uuid`           | Tests that the value is a `String` containing a valid UUID
-`localDate`      | Tests that the value is a `String` containing a valid `LocalDate`
-`localDateTime`  | Tests that the value is a `String` containing a valid `LocalDateTime`
-`localTime`      | Tests that the value is a `String` containing a valid `LocalTime`
-`offsetDateTime` | Tests that the value is a `String` containing a valid `OffsetDateTime`
-`offsetTime`     | Tests that the value is a `String` containing a valid `OffsetTime`
-`zonedDateTime`  | Tests that the value is a `String` containing a valid `ZonedDateTime`
-`year`           | Tests that the value is a `String` containing a valid `Year`
-`yearMonth`      | Tests that the value is a `String` containing a valid `YearMonth`
-`monthDay`       | Tests that the value is a `String` containing a valid `MonthDay`
-`duration`       | Tests that the value is a `String` containing a valid `Duration`
-`period`         | Tests that the value is a `String` containing a valid `Period`
+`nonNull`        | ...non-null
+`string`         | ...a `String`
+`integer`        | ...an `Int`
+`longInteger`    | ...a `Long`
+`decimal`        | ...a `BigDecimal` (a number with an optional decimal fraction)
+`uuid`           | ...a `String` containing a valid UUID
+`localDate`      | ...a `String` containing a valid `LocalDate`
+`localDateTime`  | ...a `String` containing a valid `LocalDateTime`
+`localTime`      | ...a `String` containing a valid `LocalTime`
+`offsetDateTime` | ...a `String` containing a valid `OffsetDateTime`
+`offsetTime`     | ...a `String` containing a valid `OffsetTime`
+`zonedDateTime`  | ...a `String` containing a valid `ZonedDateTime`
+`year`           | ...a `String` containing a valid `Year`
+`yearMonth`      | ...a `String` containing a valid `YearMonth`
+`monthDay`       | ...a `String` containing a valid `MonthDay`
+`duration`       | ...a `String` containing a valid `Duration`
+`period`         | ...a `String` containing a valid `Period`
 
 Consistent with the widening of numbers in the tests against `Long` and `BigDecimal` values, the `longInteger` test
 passes if the value is `Int` or `Long`, and the `decimal` test passes if the value is `Int` or `Long` or `BigDecimal`.

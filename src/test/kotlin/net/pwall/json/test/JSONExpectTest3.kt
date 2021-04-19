@@ -29,8 +29,6 @@ import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.expect
 
-import java.math.BigDecimal
-
 import net.pwall.json.test.JSONExpect.Companion.expectJSON
 
 class JSONExpectTest3 {
