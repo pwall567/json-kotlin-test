@@ -305,6 +305,20 @@ class JSONExpectTest3 {
         expect("JSON string is not a UUID - \"not a UUID\"") { exception.message }
     }
 
+    @Test fun `should fail on test of string value as UUID with shortened input`() {
+        // There is a bug in some implementations of UUID.fromString()
+        //   https://bugs.openjdk.java.net/browse/JDK-8216407
+        // A shortened string would previously have been allowed;
+        // validation changed to use JSONValidation.isUUID()
+        val json = "\"f347ab96-7f62-11ea-ba4e-27278a06\""
+        val exception = assertFailsWith<AssertionError> {
+            expectJSON(json) {
+                value(uuid)
+            }
+        }
+        expect("JSON string is not a UUID - \"f347ab96-7f62-11ea-ba4e-27278a06\"") { exception.message }
+    }
+
     @Test fun `should fail on test of non-string value as UUID`() {
         val json = "12345"
         val exception = assertFailsWith<AssertionError> {

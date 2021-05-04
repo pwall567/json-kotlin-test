@@ -43,6 +43,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 import net.pwall.json.JSON
+import net.pwall.json.validation.JSONValidation
 
 /**
  * Implementation class for `expectJSON()` function.
@@ -843,12 +844,8 @@ class JSONExpect private constructor(
 
     /** Check that a string value is a valid [UUID]. */
     val uuid: JSONExpect.() -> Unit = {
-        try {
-            UUID.fromString(nodeAsString)
-        }
-        catch (e: Exception) {
+        if (!JSONValidation.isUUID(nodeAsString))
             error("JSON string is not a UUID - ${showNode()}")
-        }
     }
 
     /** Check that a string value is a valid [LocalDate]. */

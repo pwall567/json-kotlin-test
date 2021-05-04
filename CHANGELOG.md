@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.11] - 2021-05-04
+### Changed
+- `JSONExpect`: switched to use `JSONValidation.isUUID()` for UUID validation
+- `pom.xml`: added `json-validation`
+
 ## [0.10] - 2021-04-19
 ### Changed
 - `pom.xml`: updated `surefire` plugin to ensure tests are run in Maven
