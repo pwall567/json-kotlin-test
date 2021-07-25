@@ -42,7 +42,7 @@ import java.time.YearMonth
 import java.time.ZonedDateTime
 import java.util.UUID
 
-import net.pwall.json.JSON
+import net.pwall.json.JSONSimple
 import net.pwall.json.validation.JSONValidation
 
 /**
@@ -1088,7 +1088,7 @@ class JSONExpect private constructor(
          */
         fun expectJSON(json: String, tests: JSONExpect.() -> Unit) {
             val obj = try {
-                JSON.parse(json)?.toSimpleValue()
+                JSONSimple.parse(json)
             }
             catch (e: Exception) {
                 fail("Unable to parse JSON - ${e.message}")

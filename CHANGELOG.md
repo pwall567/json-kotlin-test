@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [1.0] - 2021-05-04
+### Changed
+- `JSONExpect`: switched to use `JSONSimple.parse()` lightweight JSON parser
+- `pom.xml`: bumped dependency, promoted to version 1.0
+
 ## [0.11] - 2021-05-04
 ### Changed
 - `JSONExpect`: switched to use `JSONValidation.isUUID()` for UUID validation
