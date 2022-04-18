@@ -125,7 +125,7 @@ This parses the JSON into an internal form and then performs the tests in the su
     }
 ```
 
-If any of the tests fail an `AssertionError` will be thrown with a detailed error message, usually including expected
+If any of the tests fail, an `AssertionError` will be thrown with a detailed error message, usually including expected
 and actual values.
 
 ### Testing JSON Properties
