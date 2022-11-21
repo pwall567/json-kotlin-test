@@ -701,7 +701,7 @@ class JSONExpect private constructor(
                 test.invoke(this)
                 return
             }
-            catch (e: AssertionError) {}
+            catch (_: AssertionError) {}
         }
         error("No successful test - value is ${showNode()}")
     }
@@ -1055,8 +1055,7 @@ class JSONExpect private constructor(
         error("JSON value not in range - ${showNode()}")
     }
 
-    private fun checkName(name: String): String =
-            if (name.isNotEmpty()) name else error("JSON property name must not be empty")
+    private fun checkName(name: String): String = name.ifEmpty { error("JSON property name must not be empty") }
 
     private fun checkIndex(index: Int): Int =
             if (index >= 0) index else error("JSON array index must not be negative - $index")
