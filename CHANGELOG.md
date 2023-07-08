@@ -4,7 +4,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [1.2] - 2023-07-08
 ### Changed
-- `pom.xml`: updated dependency version, update Kotline version to 1.7.21
+- `pom.xml`: updated dependency version, update Kotlin version to 1.7.21
 
 ## [1.1.11] - 2023-01-08
 ### Changed
