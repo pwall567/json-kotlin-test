@@ -675,7 +675,7 @@ passes if the value is `Int` or `Long`, and the `decimal` test passes if the val
 
 ## Dependency Specification
 
-The latest version of the library is 1.3, and it may be obtained from the Maven Central repository.
+The latest version of the library is 1.4, and it may be obtained from the Maven Central repository.
 (The following dependency declarations assume that the library will be included for test purposes; this is
 expected to be its principal use.)
 
@@ -684,19 +684,19 @@ expected to be its principal use.)
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-test</artifactId>
-      <version>1.3</version>
+      <version>1.4</version>
       <scope>test</scope>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    testImplementation 'net.pwall.json:json-kotlin-test:1.3'
+    testImplementation 'net.pwall.json:json-kotlin-test:1.4'
 ```
 ### Gradle (kts)
 ```kotlin
-    testImplementation("net.pwall.json:json-kotlin-test:1.3")
+    testImplementation("net.pwall.json:json-kotlin-test:1.4")
 ```
 
 Peter Wall
 
-2023-10-15
+2023-12-12
