@@ -50,7 +50,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of value as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of value as one of multiple`() {
         val json = "\"INCORRECT\""
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -81,7 +81,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of property as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of property as one of multiple`() {
         val json = """{"abc":"INCORRECT"}"""
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -114,7 +114,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of array item as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of array item as one of multiple`() {
         val json = "[\"INCORRECT\"]"
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -133,7 +133,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of long check as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of long check as one of multiple`() {
         val json = "0"
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -150,7 +150,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of decimal check as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of decimal check as one of multiple`() {
         val json = "0.5"
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -167,7 +167,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of boolean check as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of boolean check as one of multiple`() {
         val json = "false"
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -184,7 +184,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of null check as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of null check as one of multiple`() {
         val json = "0"
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -201,7 +201,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of Regex check as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of Regex check as one of multiple`() {
         val json = "\"0\""
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -218,7 +218,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of int range check as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of int range check as one of multiple`() {
         val json = "51"
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -235,7 +235,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of long range check as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of long range check as one of multiple`() {
         val json = "1122334455667799"
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -252,7 +252,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of decimal range check as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of decimal range check as one of multiple`() {
         val json = "-2.5"
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -269,7 +269,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of string range check as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of string range check as one of multiple`() {
         val json = "\"AAA\""
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -286,7 +286,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of string collection check as one of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of string collection check as one of multiple`() {
         val json = "\"delta\""
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
@@ -315,7 +315,7 @@ class JSONExpectTest5 {
         }
     }
 
-    @Test fun `should fail on incorrect test of complex combinations of multiple possibilities`() {
+    @Test fun `should fail on incorrect test of complex combinations of multiple`() {
         val json = """{"data":28}"""
         val exception = assertFailsWith<AssertionError> {
             expectJSON(json) {
